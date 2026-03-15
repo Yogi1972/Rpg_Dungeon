@@ -32,17 +32,17 @@ namespace Rpg_Dungeon.Systems
         /// <summary>
         /// GitHub repository URL for the release version
         /// </summary>
-        public const string GitHubReleaseUrl = "https://github.com/YOUR_USERNAME/Rpg_Dungeon/releases";
+        public const string GitHubReleaseUrl = "https://github.com/Yogi1972/Rpg_Dungeon/releases";
 
         /// <summary>
         /// GitHub repository URL for the development version
         /// </summary>
-        public const string GitHubDevUrl = "https://github.com/YOUR_USERNAME/Rpg_Dungeon";
+        public const string GitHubDevUrl = "https://github.com/Yogi1972/Rpg_Dungeon";
 
         /// <summary>
         /// GitHub raw content URL for version file (used for update checking)
         /// </summary>
-        public const string GitHubVersionCheckUrl = "https://raw.githubusercontent.com/YOUR_USERNAME/Rpg_Dungeon/main/version.json";
+        public const string GitHubVersionCheckUrl = "https://raw.githubusercontent.com/Yogi1972/Rpg_Dungeon/main/Docs/version.json";
 
         /// <summary>
         /// Build date of this version
