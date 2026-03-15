@@ -1,0 +1,160 @@
+using Night.Characters;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+
+namespace Rpg_Dungeon
+{
+    internal static class GameInitializer
+    {
+        public static void StartNewGame()
+        {
+            Console.Clear();
+            Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
+            Console.WriteLine("║                      NEW GAME CREATION                           ║");
+            Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
+            Console.WriteLine();
+
+            int partySize = GetPartySize();
+            var party = CreateParty(partySize, false);
+
+            Console.WriteLine($"Created {party.Count} characters:\n{string.Join("\n", GetPartyDescriptions(party))}");
+            Thread.Sleep(2000);
+            GameLoopManager.Run(party, false);
+        }
+
+        public static void StartMultiplayerGame()
+        {
+            try { Console.Clear(); } catch { Console.WriteLine("\n\n"); }
+            Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
+            Console.WriteLine("║                   MULTIPLAYER GAME SETUP                         ║");
+            Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
+            Console.WriteLine();
+            Console.WriteLine("  🎮 Multiplayer allows multiple players to control party members!");
+            Console.WriteLine("  📝 Each player creates their own character for the adventure.");
+            Console.WriteLine();
+
+            int partySize = GetPartySize("Enter number of players (1-4): ");
+            var party = CreateParty(partySize, true);
+
+            Console.WriteLine("\n╔══════════════════════════════════════════════════════════════════╗");
+            Console.WriteLine("║                    MULTIPLAYER PARTY CREATED                     ║");
+            Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
+            Console.WriteLine($"\nCreated {party.Count} characters:");
+            foreach (var desc in GetPartyDescriptions(party))
+            {
+                Console.WriteLine($"  👤 {desc}");
+            }
+            Console.WriteLine("\n💡 Tip: Use option 7 in the main menu to configure multiplayer settings!");
+            Thread.Sleep(3000);
+            GameLoopManager.Run(party, true);
+        }
+
+        private static int GetPartySize(string prompt = "Enter party size (1-4): ")
+        {
+            int partySize = 0;
+            while (partySize <= 0 || partySize > 4)
+            {
+                Console.Write(prompt);
+                var input = Console.ReadLine();
+                if (!int.TryParse(input, out partySize) || partySize <= 0 || partySize > 4)
+                {
+                    Console.WriteLine("Invalid size. Please enter an integer between 1 and 4.");
+                    partySize = 0;
+                }
+            }
+            return partySize;
+        }
+
+        private static List<Character> CreateParty(int partySize, bool isMultiplayer)
+        {
+            var party = new List<Character>(partySize);
+
+            for (int i = 0; i < partySize; i++)
+            {
+                if (isMultiplayer)
+                {
+                    Console.WriteLine($"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                    Console.WriteLine($"  PLAYER {i + 1} - Create Your Character");
+                    Console.WriteLine($"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                }
+                else
+                {
+                    Console.WriteLine($"Create character {i + 1} of {partySize}:");
+                }
+
+                var character = CreateCharacter(i, isMultiplayer);
+                party.Add(character);
+            }
+
+            return party;
+        }
+
+        private static Character CreateCharacter(int index, bool isMultiplayer)
+        {
+            Console.Write("Name: ");
+            var name = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(name))
+                name = isMultiplayer ? $"Player{index + 1}" : $"Character{index + 1}";
+
+            var race = SelectRace();
+            var gender = SelectGender();
+            var character = SelectClass(name);
+
+            character.ApplyRaceBonuses(race);
+            string bonusText = isMultiplayer ? "✓ Racial bonuses applied: " : "\nRacial bonuses applied: ";
+            Console.WriteLine($"{bonusText}{race}");
+
+            character.Inventory.AddGold(50);
+
+            return character;
+        }
+
+        private static Race SelectRace()
+        {
+            while (true)
+            {
+                Console.WriteLine("Choose race:\n1) Human\n2) Elf\n3) Dwarf\n4) Gnome");
+                var r = Console.ReadLine() ?? string.Empty;
+                if (r == "1") return new Human();
+                if (r == "2") return new Elf();
+                if (r == "3") return new Dwarf();
+                if (r == "4") return new Gnome();
+            }
+        }
+
+        private static string SelectGender()
+        {
+            while (true)
+            {
+                Console.WriteLine("Choose gender:\n1) Male\n2) Female");
+                var g = Console.ReadLine() ?? string.Empty;
+                if (g == "1") return "Male";
+                if (g == "2") return "Female";
+            }
+        }
+
+        private static Character SelectClass(string name)
+        {
+            while (true)
+            {
+                Console.WriteLine("Choose class:\n1) Warrior\n2) Mage\n3) Rogue\n4) Priest");
+                var cls = Console.ReadLine() ?? string.Empty;
+                if (cls == "1") return new Warrior(name);
+                if (cls == "2") return new Mage(name);
+                if (cls == "3") return new Rogue(name);
+                if (cls == "4") return new Priest(name);
+            }
+        }
+
+        private static List<string> GetPartyDescriptions(List<Character> party)
+        {
+            var descriptions = new List<string>();
+            foreach (var c in party)
+            {
+                descriptions.Add($"{c.Name} ({c.GetType().Name}) - Gold: {c.Inventory.Gold}");
+            }
+            return descriptions;
+        }
+    }
+}

@@ -1,0 +1,8 @@
+{
+  "majorVersion": 1,
+  "minorVersion": 0,
+  "patchVersion": 0,
+  "preReleaseTag": null,
+  "releaseNotes": "Initial release of RPG Dungeon Crawler with character creation, dungeon exploration, quest system, multiplayer support, and more!",
+  "releaseDate": "2025-01-01"
+}

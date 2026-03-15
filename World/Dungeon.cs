@@ -1,0 +1,836 @@
+﻿using Night.Characters;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Rpg_Dungeon
+{
+    // Room types for different dungeon encounters
+    internal enum RoomType
+    {
+        Empty,          // Safe room, no encounter
+        Combat,         // Regular mob fight
+        Elite,          // Tougher enemy
+        Treasure,       // Loot chest
+        Boss,           // Floor boss
+        Stairs          // Stairs to next level
+    }
+
+    // Location types for dungeon navigation
+    internal enum LocationType
+    {
+        Room,           // Actual room with encounters
+        Hallway,        // Corridor connecting rooms
+        Intersection    // Hallway junction with multiple exits
+    }
+
+    // A single room in the dungeon
+    internal class DungeonRoom
+    {
+        public RoomType Type { get; set; }
+        public LocationType Location { get; set; }
+        public bool Visited { get; set; }
+        public bool Cleared { get; set; }
+        public Dictionary<string, DungeonRoom?> Exits { get; } // North, South, East, West
+
+        public DungeonRoom(RoomType type, LocationType location = LocationType.Room)
+        {
+            Type = type;
+            Location = location;
+            Visited = false;
+            Cleared = false;
+            Exits = new Dictionary<string, DungeonRoom?>
+            {
+                { "north", null },
+                { "south", null },
+                { "east", null },
+                { "west", null }
+            };
+        }
+
+        public string GetExitsDescription()
+        {
+            var exits = new List<string>();
+            if (Exits["north"] != null) exits.Add("North");
+            if (Exits["south"] != null) exits.Add("South");
+            if (Exits["east"] != null) exits.Add("East");
+            if (Exits["west"] != null) exits.Add("West");
+            return exits.Count > 0 ? string.Join(", ", exits) : "None";
+        }
+    }
+
+    // Floor in a multi-level dungeon
+    internal class DungeonFloor
+    {
+        public int FloorNumber { get; }
+        public DungeonRoom StartRoom { get; }
+        public DungeonRoom? StairsDown { get; set; }
+        public DungeonRoom? StairsUp { get; set; }
+        public DungeonRoom? BossRoom { get; set; }
+        public List<DungeonRoom> AllRooms { get; }
+
+        public DungeonFloor(int floorNumber)
+        {
+            FloorNumber = floorNumber;
+            AllRooms = new List<DungeonRoom>();
+            StartRoom = new DungeonRoom(RoomType.Empty);
+            AllRooms.Add(StartRoom);
+        }
+    }
+
+    internal class Dungeon
+    {
+        private readonly int _totalFloors;
+        private readonly Random _rng = new Random();
+        private readonly List<DungeonFloor> _floors;
+        private int _currentFloorIndex;
+        private DungeonRoom _currentRoom;
+        private QuestBoard? _questBoard;
+        private BountyBoard? _bountyBoard;
+        private AchievementTracker? _achievementTracker;
+        private Journal? _journal;
+        private readonly RandomEventManager _randomEvents;
+        private readonly Trading _trading;
+
+        public Dungeon(int floors = 3)
+        {
+            _totalFloors = Math.Max(1, floors);
+            _floors = new List<DungeonFloor>();
+            _randomEvents = new RandomEventManager();
+            _trading = new Trading();
+
+            // Generate all floors
+            for (int i = 0; i < _totalFloors; i++)
+            {
+                _floors.Add(GenerateFloor(i + 1));
+            }
+
+            _currentFloorIndex = 0;
+            _currentRoom = _floors[0].StartRoom;
+        }
+
+        private DungeonFloor GenerateFloor(int floorNumber)
+        {
+            var floor = new DungeonFloor(floorNumber);
+            var random = new Random();
+
+            // Generate a small branching dungeon (5-8 rooms per floor)
+            int roomCount = random.Next(5, 9);
+
+            // Create rooms in a simple layout
+            var rooms = new List<DungeonRoom> { floor.StartRoom };
+
+            for (int i = 1; i < roomCount; i++)
+            {
+                RoomType type;
+
+                // Determine room type
+                int roll = random.Next(100);
+                if (i == roomCount - 1)
+                {
+                    // Last room is boss room
+                    type = RoomType.Boss;
+                }
+                else if (roll < 50)
+                {
+                    type = RoomType.Combat;
+                }
+                else if (roll < 70)
+                {
+                    type = RoomType.Elite;
+                }
+                else if (roll < 85)
+                {
+                    type = RoomType.Treasure;
+                }
+                else
+                {
+                    type = RoomType.Empty;
+                }
+
+                var newRoom = new DungeonRoom(type);
+                rooms.Add(newRoom);
+                floor.AllRooms.Add(newRoom);
+            }
+
+            // Connect rooms randomly with occasional hallways
+            for (int i = 0; i < rooms.Count - 1; i++)
+            {
+                var room = rooms[i];
+                var nextRoom = rooms[i + 1];
+
+                // Pick a random direction
+                var directions = new[] { "north", "south", "east", "west" };
+                var dir = directions[random.Next(directions.Length)];
+                var oppositeDir = GetOppositeDirection(dir);
+
+                // 40% chance to add a hallway between rooms
+                if (random.Next(100) < 40)
+                {
+                    var hallway = new DungeonRoom(RoomType.Empty, LocationType.Hallway);
+                    floor.AllRooms.Add(hallway);
+                    room.Exits[dir] = hallway;
+                    hallway.Exits[oppositeDir] = room;
+                    hallway.Exits[dir] = nextRoom;
+                    nextRoom.Exits[oppositeDir] = hallway;
+                }
+                else
+                {
+                    // Direct connection
+                    room.Exits[dir] = nextRoom;
+                    nextRoom.Exits[oppositeDir] = room;
+                }
+            }
+
+            // Add some additional connections for branching
+            if (rooms.Count >= 4)
+            {
+                for (int i = 0; i < rooms.Count / 2; i++)
+                {
+                    var room1 = rooms[random.Next(rooms.Count - 1)];
+                    var room2 = rooms[random.Next(1, rooms.Count)];
+
+                    if (room1 != room2)
+                    {
+                        var directions = new[] { "north", "south", "east", "west" };
+                        var availableDirections = new List<string>();
+                        foreach (var d in directions)
+                        {
+                            if (room1.Exits[d] == null)
+                                availableDirections.Add(d);
+                        }
+
+                        if (availableDirections.Count > 0)
+                        {
+                            var dir = availableDirections[random.Next(availableDirections.Count)];
+                            var oppositeDir = GetOppositeDirection(dir);
+
+                            if (room2.Exits[oppositeDir] == null)
+                            {
+                                room1.Exits[dir] = room2;
+                                room2.Exits[oppositeDir] = room1;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Set boss room
+            floor.BossRoom = rooms[rooms.Count - 1];
+
+            // Add stairs if not last floor
+            if (floorNumber < _totalFloors)
+            {
+                // Add stairs down to a random cleared room (not boss room)
+                var stairsRoom = new DungeonRoom(RoomType.Stairs);
+                floor.StairsDown = stairsRoom;
+                floor.AllRooms.Add(stairsRoom);
+
+                // Connect stairs to a random room
+                var connectRoom = rooms[random.Next(Math.Max(1, rooms.Count - 1))];
+                var directions = new[] { "north", "south", "east", "west" };
+                var availableDirections = new List<string>();
+                foreach (var d in directions)
+                {
+                    if (connectRoom.Exits[d] == null)
+                        availableDirections.Add(d);
+                }
+
+                if (availableDirections.Count > 0)
+                {
+                    var dir = availableDirections[random.Next(availableDirections.Count)];
+                    var oppositeDir = GetOppositeDirection(dir);
+                    connectRoom.Exits[dir] = stairsRoom;
+                    stairsRoom.Exits[oppositeDir] = connectRoom;
+                }
+            }
+
+            return floor;
+        }
+
+        private string GetOppositeDirection(string direction)
+        {
+            return direction switch
+            {
+                "north" => "south",
+                "south" => "north",
+                "east" => "west",
+                "west" => "east",
+                _ => "north"
+            };
+        }
+
+        private string GetHallwayDescription()
+        {
+            var descriptions = new[]
+            {
+                "The corridor is damp and covered in moss.",
+                "Torches flicker along the stone walls.",
+                "You hear water dripping in the distance.",
+                "Ancient carvings adorn the walls.",
+                "The air grows cold and still.",
+                "Cobwebs hang from the ceiling.",
+                "Your footsteps echo through the passage.",
+                "A musty smell fills the air.",
+                "The walls are lined with old bones.",
+                "Strange symbols glow faintly on the floor."
+            };
+            return descriptions[_rng.Next(descriptions.Length)];
+        }
+
+        private string GetRoomAtmosphere(RoomType type, int floorNumber)
+        {
+            return type switch
+            {
+                RoomType.Empty => _rng.Next(4) switch
+                {
+                    0 => "The room is quiet and peaceful. A safe haven.",
+                    1 => "Sunlight streams through cracks in the ceiling. You can rest here.",
+                    2 => "An abandoned campsite sits in the corner. This seems safe.",
+                    _ => "The room feels unusually calm. A good place to catch your breath."
+                },
+                RoomType.Combat => _rng.Next(4) switch
+                {
+                    0 => "Blood stains mark the floor. Something dangerous lurks here.",
+                    1 => "You hear growling ahead. Combat is inevitable.",
+                    2 => "The smell of death fills the air. Enemies await.",
+                    _ => "Claw marks scar the walls. Prepare for battle."
+                },
+                RoomType.Elite => _rng.Next(4) switch
+                {
+                    0 => "The air crackles with malevolent energy. A powerful foe awaits.",
+                    1 => "Skulls are piled in the corners. Something formidable dwells here.",
+                    2 => "The temperature drops sharply. You sense a dangerous presence.",
+                    _ => "Weapons and armor litter the ground. Many have failed here."
+                },
+                RoomType.Treasure => _rng.Next(4) switch
+                {
+                    0 => "A ornate chest sits in the center of the room, gleaming with promise.",
+                    1 => "Gold coins glitter in the torchlight. Treasure awaits!",
+                    2 => "You spot a locked chest covered in dust and cobwebs.",
+                    _ => "Precious items are scattered across the floor. Someone left in a hurry."
+                },
+                RoomType.Boss => _rng.Next(3) switch
+                {
+                    0 => $"A massive chamber opens before you. The Floor {floorNumber} Guardian awaits on a throne of bones.",
+                    1 => $"The room trembles with dark power. The master of Floor {floorNumber} prepares to defend their domain.",
+                    _ => $"Torches ignite around the perimeter. The Floor {floorNumber} Boss has been expecting you."
+                },
+                RoomType.Stairs => _rng.Next(3) switch
+                {
+                    0 => "Ancient stairs spiral downward into darkness.",
+                    1 => "A stone staircase descends deeper into the dungeon.",
+                    _ => "Worn steps lead to the next floor below."
+                },
+                _ => "The room is unremarkable."
+            };
+        }
+
+        // Main exploration loop
+        public void Explore(List<Character> party, Journal? journal = null, QuestBoard? questBoard = null, BountyBoard? bountyBoard = null, AchievementTracker? achievementTracker = null)
+        {
+            if (party == null || party.Count == 0)
+            {
+                Console.WriteLine("No party to explore the dungeon.");
+                return;
+            }
+
+            // Store trackers for use during dungeon
+            _journal = journal;
+            _questBoard = questBoard;
+            _bountyBoard = bountyBoard;
+            _achievementTracker = achievementTracker;
+
+            int totalLevel = 0;
+            int aliveCount = 0;
+            foreach (var p in party)
+            {
+                if (p.IsAlive)
+                {
+                    totalLevel += p.Level;
+                    aliveCount++;
+                }
+            }
+            int partyAvgLevel = aliveCount > 0 ? totalLevel / aliveCount : 0;
+            Console.WriteLine($"╔═══════════════════════════════════════╗");
+            Console.WriteLine($"║   ENTERING DUNGEON: {_totalFloors} FLOORS          ║");
+            Console.WriteLine($"║   Party Average Level: {partyAvgLevel,-2}            ║");
+            Console.WriteLine($"╚═══════════════════════════════════════╝");
+
+            _currentFloorIndex = 0;
+            _currentRoom = _floors[0].StartRoom;
+            _currentRoom.Visited = true;
+
+            bool exploring = true;
+            while (exploring)
+            {
+                bool anyAlive = false;
+                foreach (var p in party)
+                {
+                    if (p.IsAlive)
+                    {
+                        anyAlive = true;
+                        break;
+                    }
+                }
+                if (!anyAlive)
+                {
+                    Console.WriteLine("\n💀 Your entire party has been defeated!");
+                    return;
+                }
+
+                // Show current status
+                DisplayRoomStatus();
+
+                // Handle room encounter
+                if (!_currentRoom.Cleared)
+                {
+                    bool encounterResult = HandleRoomEncounter(party, partyAvgLevel);
+                    if (!encounterResult)
+                    {
+                        Console.WriteLine("\n💀 The party has been defeated!");
+                        return;
+                    }
+                    _currentRoom.Cleared = true;
+
+                    // Chance for random event after clearing room (25%)
+                    _randomEvents.TriggerRandomEvent(party, 25);
+                }
+
+                // Show navigation options
+                Console.WriteLine("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                Console.WriteLine("What would you like to do?");
+                Console.WriteLine("  [N/S/E/W] - Move in a direction");
+                Console.WriteLine("  [M] - Show map");
+                Console.WriteLine("  [P] - View party status");
+                Console.WriteLine("  [T] - Trade with party members");
+                Console.WriteLine("  [L] - Leave dungeon");
+                Console.Write("\nChoice: ");
+
+                var input = (Console.ReadLine() ?? "").Trim().ToLower();
+
+                switch (input)
+                {
+                    case "n":
+                    case "north":
+                        MoveDirection("north");
+                        break;
+                    case "s":
+                    case "south":
+                        MoveDirection("south");
+                        break;
+                    case "e":
+                    case "east":
+                        MoveDirection("east");
+                        break;
+                    case "w":
+                    case "west":
+                        MoveDirection("west");
+                        break;
+                    case "m":
+                    case "map":
+                        ShowMap();
+                        break;
+                    case "p":
+                    case "party":
+                        ShowPartyStatus(party);
+                        break;
+                    case "t":
+                    case "trade":
+                        _trading.OpenTradeMenu(party);
+                        break;
+                    case "l":
+                    case "leave":
+                        Console.WriteLine("\n🏃 The party leaves the dungeon.");
+                        exploring = false;
+                        break;
+                    default:
+                        Console.WriteLine("❌ Invalid command.");
+                        break;
+                }
+
+                // Check for dungeon completion
+                if (_currentFloorIndex >= _totalFloors - 1 && 
+                    _floors[_currentFloorIndex].BossRoom?.Cleared == true)
+                {
+                    Console.WriteLine("\n╔═══════════════════════════════════════╗");
+                    Console.WriteLine("║  🎉 DUNGEON CONQUERED! 🎉            ║");
+                    Console.WriteLine("║  The party emerges victorious!       ║");
+                    Console.WriteLine("╚═══════════════════════════════════════╝");
+
+                    // Track dungeon completion achievement
+                    _achievementTracker?.TrackDungeonComplete();
+
+                    exploring = false;
+                }
+            }
+        }
+
+        private void DisplayRoomStatus()
+        {
+            var floor = _floors[_currentFloorIndex];
+            Console.WriteLine("\n╔═══════════════════════════════════════╗");
+            Console.WriteLine($"║  Floor {floor.FloorNumber}/{_totalFloors}                              ║");
+
+            // Show location type
+            string locationType = _currentRoom.Location switch
+            {
+                LocationType.Room => "Room",
+                LocationType.Hallway => "Hallway",
+                LocationType.Intersection => "Intersection",
+                _ => "Unknown"
+            };
+            Console.WriteLine($"║  Location: {locationType,-27}║");
+
+            string roomDesc = GetRoomDescription(_currentRoom);
+            Console.WriteLine($"║  {roomDesc,-37}║");
+
+            // Show exploration status
+            string explorationStatus = _currentRoom.Visited ? "Explored" : "First Visit";
+            Console.WriteLine($"║  Status: {explorationStatus,-29}║");
+
+            if (_currentRoom.Cleared)
+            {
+                Console.WriteLine("║  ✓ Room Cleared                       ║");
+            }
+
+            Console.WriteLine($"║  Exits: {_currentRoom.GetExitsDescription(),-28}║");
+            Console.WriteLine("╚═══════════════════════════════════════╝");
+        }
+
+        private string GetRoomDescription(DungeonRoom room)
+        {
+            if (!room.Visited)
+                return "Unknown Area (Not yet explored)";
+
+            // Hallways have simpler descriptions
+            if (room.Location == LocationType.Hallway)
+            {
+                int exitCount = 0;
+                foreach (var e in room.Exits)
+                {
+                    if (e.Value != null)
+                        exitCount++;
+                }
+
+                if (exitCount > 2)
+                    return "🔀 Corridor Junction";
+
+                var hallwayTypes = new[] 
+                { 
+                    "🚶 Narrow Corridor", 
+                    "🕯️ Torch-lit Passage", 
+                    "🌫️ Misty Hallway",
+                    "🪨 Stone Corridor" 
+                };
+                return hallwayTypes[_rng.Next(hallwayTypes.Length)];
+            }
+
+            if (room.Location == LocationType.Intersection)
+            {
+                return "🔀 Crossroads";
+            }
+
+            // Room descriptions with icons
+            return room.Type switch
+            {
+                RoomType.Empty => "🛡️ Safe Chamber",
+                RoomType.Combat => "💀 Monster Den",
+                RoomType.Elite => "⚔️  Champion's Arena",
+                RoomType.Treasure => "💎 Treasure Vault",
+                RoomType.Boss => "👹 BOSS CHAMBER",
+                RoomType.Stairs => "🪜 Descent",
+                _ => "Unknown"
+            };
+        }
+
+        private bool HandleRoomEncounter(List<Character> party, int partyAvgLevel)
+        {
+            var floor = _floors[_currentFloorIndex];
+
+            // Hallways have atmospheric descriptions
+            if (_currentRoom.Location == LocationType.Hallway)
+            {
+                Console.WriteLine($"\n🚶 {GetHallwayDescription()}");
+                return true;
+            }
+
+            if (_currentRoom.Location == LocationType.Intersection)
+            {
+                Console.WriteLine("\n🔀 You reach a crossroads. Multiple passages branch off in different directions.");
+                int exitCount = 0;
+                foreach (var e in _currentRoom.Exits)
+                {
+                    if (e.Value != null)
+                        exitCount++;
+                }
+                Console.WriteLine($"You can travel in {exitCount} directions from here.");
+                return true;
+            }
+
+            // Show atmospheric description for rooms
+            string atmosphere = GetRoomAtmosphere(_currentRoom.Type, floor.FloorNumber);
+            Console.WriteLine($"\n{atmosphere}");
+            Console.WriteLine();
+
+            switch (_currentRoom.Type)
+            {
+                case RoomType.Empty:
+                    Console.WriteLine("✨ You take a moment to rest and assess your surroundings.");
+                    return true;
+
+                case RoomType.Combat:
+                    Console.WriteLine("⚔️  An enemy appears from the shadows!");
+                    var mob = Mobs.GetRandomMobForParty(party, floor.FloorNumber);
+                    return HandleCombat(party, mob, partyAvgLevel);
+
+                case RoomType.Elite:
+                    Console.WriteLine("⚔️  A POWERFUL ELITE blocks your path!");
+                    var eliteMob = Mobs.GetRandomMobForParty(party, floor.FloorNumber + 2);
+                    // Elite has higher stats via higher level scaling
+                    return HandleCombat(party, eliteMob, partyAvgLevel);
+
+                case RoomType.Treasure:
+                    Console.WriteLine("💎 Your eyes widen at the sight of treasure!");
+                    HandleTreasure(party);
+                    return true;
+
+                case RoomType.Boss:
+                    Console.WriteLine("👹 The air grows heavy with dread. The floor guardian emerges!");
+                    var boss = Mobs.GetRandomMobForParty(party, floor.FloorNumber + 5); // Bosses are much higher level
+                    Console.WriteLine($"💀 {boss.Name} - The Floor Guardian! (HP: {boss.Health})");
+                    return HandleCombat(party, boss, partyAvgLevel, isBoss: true);
+
+                case RoomType.Stairs:
+                    // Check if boss has been defeated before allowing descent
+                    var currentFloor = _floors[_currentFloorIndex];
+                    if (currentFloor.BossRoom != null && !currentFloor.BossRoom.Cleared)
+                    {
+                        Console.WriteLine("🚫 A shimmering magical barrier blocks the stairs!");
+                        Console.WriteLine("The guardian's magic seals this passage. Defeat the floor boss to proceed.");
+                        return true;
+                    }
+
+                    Console.WriteLine("🪜 The path downward is now clear!");
+                    Console.WriteLine("Press Enter to descend to the next floor...");
+                    Console.ReadLine();
+                    DescendStairs();
+                    return true;
+
+                default:
+                    return true;
+            }
+        }
+
+        private bool HandleCombat(List<Character> party, Mob mob, int partyAvgLevel, bool isBoss = false)
+        {
+            string rank = Playerleveling.GetMobRankTitle(mob.Level, partyAvgLevel);
+            Console.WriteLine($"Level {mob.Level} {mob.Name} {rank}");
+            Console.WriteLine($"HP: {mob.Health} | STR: {mob.Strength} | AGI: {mob.Agility}");
+
+            bool victory = Combat.RunEncounter(party, mob);
+
+            if (victory)
+            {
+                // Track quest progress (kill quests) in both places for compatibility
+                _questBoard?.UpdateQuestProgress(mob.Name);
+                _journal?.UpdateQuestProgress(mob.Name);
+
+                // Check bounty completion in both places for compatibility
+                _bountyBoard?.CheckBountyCompletion(mob.Name, _journal);
+                _journal?.CheckBountyCompletion(mob.Name);
+
+                // Track achievements
+                _achievementTracker?.TrackCombatKill(mob.Name);
+
+                if (isBoss)
+                {
+                    Console.WriteLine("\n🎉 BOSS DEFEATED! You found rare loot!");
+                    // Bonus treasure for boss kills
+                    HandleTreasure(party);
+                }
+            }
+
+            return victory;
+        }
+
+        private void HandleTreasure(List<Character> party)
+        {
+            var treasureDescriptions = new[]
+            {
+                "You pry open the chest with anticipation...",
+                "The lock gives way and the chest creaks open...",
+                "With careful hands, you unlock the treasure...",
+                "The chest bursts open in a shower of golden light!"
+            };
+            Console.WriteLine(treasureDescriptions[_rng.Next(treasureDescriptions.Length)]);
+
+            int goldAmount = _rng.Next(50, 200) * (_currentFloorIndex + 1);
+            Console.WriteLine($"💰 The party found {goldAmount} gold pieces!");
+
+            // Distribute gold evenly
+            int goldPerMember = goldAmount / party.Count;
+            foreach (var member in party)
+            {
+                member.Inventory.AddGold(goldPerMember);
+            }
+
+            // Track treasure chest opened
+            _achievementTracker?.TrackChestOpened();
+
+            // Random chance for item
+            if (_rng.Next(100) < 60)
+            {
+                // Give random loot item to a random party member
+                var randomMember = party[_rng.Next(party.Count)];
+                var mob = Mobs.GetRandomMobForParty(party, _currentFloorIndex + 1);
+                var lootResult = mob.DropLoot(_rng);
+
+                if (lootResult.Items.Count > 0)
+                {
+                    var item = lootResult.Items[_rng.Next(lootResult.Items.Count)];
+                    randomMember.Inventory.AddItem(item);
+                    var foundDescriptions = new[]
+                    {
+                        $"✨ {randomMember.Name} discovers a {item.Name} hidden among the treasure!",
+                        $"🎁 {randomMember.Name} finds a valuable {item.Name}!",
+                        $"⭐ {randomMember.Name} uncovers a {item.Name}!"
+                    };
+                    Console.WriteLine(foundDescriptions[_rng.Next(foundDescriptions.Length)]);
+                }
+            }
+
+            Console.WriteLine("\nPress Enter to continue...");
+            Console.ReadLine();
+        }
+
+        private void MoveDirection(string direction)
+        {
+            if (_currentRoom.Exits[direction] != null)
+            {
+                var previousLocation = _currentRoom.Location;
+                _currentRoom = _currentRoom.Exits[direction]!;
+
+                // Check if this is first visit for special message
+                bool firstVisit = !_currentRoom.Visited;
+                _currentRoom.Visited = true;
+
+                // Descriptive movement messages based on location types
+                string movementMsg = (_currentRoom.Location, previousLocation) switch
+                {
+                    (LocationType.Hallway, LocationType.Room) => $"🚶 You leave the room and enter a {(firstVisit ? "dark" : "familiar")} corridor heading {direction}...",
+                    (LocationType.Room, LocationType.Hallway) => $"🚪 You emerge from the corridor into a {(firstVisit ? "new" : "previously explored")} chamber to the {direction}...",
+                    (LocationType.Hallway, LocationType.Hallway) => $"🚶 You continue down the winding hallway {direction}...",
+                    (LocationType.Intersection, LocationType.Hallway) => $"🔀 The corridor opens into a crossroads to the {direction}...",
+                    (LocationType.Hallway, LocationType.Intersection) => $"🚶 You choose a path and head {direction}...",
+                    (LocationType.Room, LocationType.Room) => $"🚪 You pass through a doorway {direction} into another chamber...",
+                    _ => $"🚶 Moving {direction}..."
+                };
+
+                Console.WriteLine($"\n{movementMsg}");
+
+                // Add first visit flavor
+                if (firstVisit && _currentRoom.Location == LocationType.Hallway)
+                {
+                    Console.WriteLine(GetHallwayDescription());
+                }
+            }
+            else
+            {
+                var wallDescriptions = new[]
+                {
+                    "A solid stone wall blocks your path.",
+                    "The way is sealed. You cannot go this way.",
+                    "There is no passage in that direction.",
+                    "A dead end. You must turn back."
+                };
+                Console.WriteLine($"\n❌ {wallDescriptions[_rng.Next(wallDescriptions.Length)]}");
+            }
+        }
+
+        private void DescendStairs()
+        {
+            if (_currentFloorIndex < _totalFloors - 1)
+            {
+                _currentFloorIndex++;
+                _currentRoom = _floors[_currentFloorIndex].StartRoom;
+                _currentRoom.Visited = true;
+
+                var descentDescriptions = new[]
+                {
+                    "The stairs creak under your weight as you descend into darkness.",
+                    "You carefully navigate the worn steps, going deeper underground.",
+                    "The air grows colder as you descend to the next level.",
+                    "Your torches illuminate the way down into the depths."
+                };
+                Console.WriteLine($"\n⬇️  {descentDescriptions[_rng.Next(descentDescriptions.Length)]}");
+                Console.WriteLine($"You have reached Floor {_currentFloorIndex + 1}!");
+                Console.WriteLine("The dungeon grows more dangerous the deeper you go...");
+            }
+            else
+            {
+                Console.WriteLine("\n❌ The stairs lead nowhere. This is the deepest floor.");
+            }
+        }
+
+        private void ShowMap()
+        {
+            var floor = _floors[_currentFloorIndex];
+            Console.WriteLine("\n╔═══════════════ FLOOR MAP ═══════════════╗");
+            Console.WriteLine($"  Floor {floor.FloorNumber}/{_totalFloors}");
+            Console.WriteLine("  Legend:");
+            Console.WriteLine("    [X] - Current location");
+            Console.WriteLine("    [✓] - Cleared room");
+            Console.WriteLine("    [~] - Hallway/Corridor");
+            Console.WriteLine("    [?] - Unvisited area");
+            Console.WriteLine("    [B] - Boss room");
+            Console.WriteLine("    [S] - Stairs");
+            Console.WriteLine("    [T] - Treasure");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+            foreach (var room in floor.AllRooms)
+            {
+                if (!room.Visited)
+                    continue;
+            {
+                string symbol;
+                if (room == _currentRoom)
+                    symbol = "[X]";
+                else if (room.Location == LocationType.Hallway || room.Location == LocationType.Intersection)
+                    symbol = "[~]";
+                else if (room.Cleared)
+                    symbol = "[✓]";
+                else if (room.Type == RoomType.Boss)
+                    symbol = "[B]";
+                else if (room.Type == RoomType.Stairs)
+                    symbol = "[S]";
+                else if (room.Type == RoomType.Treasure)
+                    symbol = "[T]";
+                else
+                    symbol = "[ ]";
+
+                Console.WriteLine($"  {symbol} {GetRoomDescription(room)}");
+            }
+            }
+
+            Console.WriteLine("╚═════════════════════════════════════════╝");
+            Console.WriteLine("\nPress Enter to continue...");
+            Console.ReadLine();
+        }
+
+        private void ShowPartyStatus(List<Character> party)
+        {
+            Console.WriteLine("\n╔═══════════════ PARTY STATUS ═══════════════╗");
+            foreach (var member in party)
+            {
+                string status = member.IsAlive ? "✓" : "💀";
+                Console.WriteLine($"  {status} {member.Name} (Lv {member.Level})");
+                Console.WriteLine($"     HP: {member.Health}/{member.MaxHealth} | Mana: {member.Mana}/{member.MaxMana}");
+                Console.WriteLine($"     Gold: {member.Inventory.Gold}g");
+            }
+            Console.WriteLine("╚════════════════════════════════════════════╝");
+            Console.WriteLine("\nPress Enter to continue...");
+            Console.ReadLine();
+        }
+    }
+}
