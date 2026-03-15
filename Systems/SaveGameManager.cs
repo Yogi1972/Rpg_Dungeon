@@ -43,6 +43,11 @@ namespace Rpg_Dungeon
                     ch.RestoreProgress(cd.Level, cd.Experience, cd.Health, cd.MaxHealth, cd.Mana, cd.MaxMana, 
                         cd.Stamina, cd.MaxStamina, cd.Strength, cd.Agility, cd.Intelligence);
 
+                    if (!string.IsNullOrEmpty(cd.ChampionClass))
+                    {
+                        ch.ChampionClass = cd.ChampionClass;
+                    }
+
                     RestorePet(ch, cd);
                     RestoreSkillTree(ch, cd);
                     RestoreInventory(ch, cd);

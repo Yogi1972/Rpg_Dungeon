@@ -48,6 +48,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine("1) Arcane Emporium (Mage Shop)");
                 Console.WriteLine("2) Healing Hands (Apothecary)");
                 Console.WriteLine("3) Hall of Fame (Achievements)");
+                Console.WriteLine("4) Champion's Sanctuary (Ascension) 🏆");
                 Console.WriteLine("0) Return to Town Square");
                 Console.Write("Choice: ");
 
@@ -63,6 +64,9 @@ namespace Rpg_Dungeon
                         break;
                     case "3":
                         ViewAchievements(party);
+                        break;
+                    case "4":
+                        VisitChampionSanctuary(party);
                         break;
                     case "0":
                         return;
@@ -127,6 +131,58 @@ namespace Rpg_Dungeon
                 {
                     _achievementTracker.ClaimRewards(party[idx - 1]);
                 }
+            }
+        }
+
+        private void VisitChampionSanctuary(List<Character> party)
+        {
+            Console.WriteLine("\n╔════════════════════════════════════════╗");
+            Console.WriteLine("║    Champion's Sanctuary - Ascension   ║");
+            Console.WriteLine("╚════════════════════════════════════════╝");
+            Console.WriteLine("✨ A sacred chamber filled with ancient power.");
+            Console.WriteLine("🏆 Only those who have reached level 25 may ascend here.\n");
+
+            var eligibleCharacters = new List<Character>();
+            foreach (var member in party)
+            {
+                if (ChampionClassManager.CanSelectChampionClass(member))
+                {
+                    eligibleCharacters.Add(member);
+                }
+            }
+
+            if (eligibleCharacters.Count == 0)
+            {
+                Console.WriteLine("❌ None of your party members are eligible for Champion Class ascension.");
+                Console.WriteLine("   Requirements:");
+                Console.WriteLine("   - Level 25 or higher");
+                Console.WriteLine("   - No Champion Class already selected");
+                Console.WriteLine();
+                Console.WriteLine("Current party status:");
+                foreach (var member in party)
+                {
+                    string status = member.HasChampionClass 
+                        ? $"[{member.ChampionClass}]" 
+                        : $"[Level {member.Level}/25]";
+                    Console.WriteLine($"  - {member.Name} {status}");
+                }
+                Console.WriteLine("\nPress any key to return...");
+                Console.ReadKey(true);
+                return;
+            }
+
+            Console.WriteLine("✨ Eligible party members for ascension:");
+            for (int i = 0; i < eligibleCharacters.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}) {eligibleCharacters[i].Name} - Level {eligibleCharacters[i].Level} {eligibleCharacters[i].GetType().Name}");
+            }
+            Console.WriteLine($"{eligibleCharacters.Count + 1}) Return");
+            Console.Write("\nSelect character to ascend: ");
+
+            var input = Console.ReadLine() ?? string.Empty;
+            if (int.TryParse(input, out int choice) && choice >= 1 && choice <= eligibleCharacters.Count)
+            {
+                ChampionClassManager.ShowChampionClassSelection(eligibleCharacters[choice - 1]);
             }
         }
 

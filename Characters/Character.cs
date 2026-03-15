@@ -44,6 +44,14 @@ namespace Night.Characters
 
         public CombatStance CurrentStance { get; set; }
 
+        public string? ChampionClass { get; set; }
+
+        public bool HasChampionClass => !string.IsNullOrEmpty(ChampionClass);
+
+        public CraftingProfession PrimaryProfession { get; set; }
+
+        public CraftingProfession SecondaryProfession { get; set; }
+
         #endregion
 
         #region Constructor
@@ -58,6 +66,8 @@ namespace Night.Characters
             CurrentLocation = "Town";
             CurrentStance = CombatStance.Balanced;
             SkillTree = SkillTreeFactory.CreateSkillTreeForCharacter(this);
+            PrimaryProfession = CraftingProfession.None;
+            SecondaryProfession = CraftingProfession.None;
         }
 
         #endregion
@@ -339,6 +349,10 @@ namespace Night.Characters
             if (Level % 25 == 0)
             {
                 Console.WriteLine($"*** MILESTONE LEVEL {Level} REACHED! Bonus stats awarded! ***");
+                if (Level == 25 && !HasChampionClass)
+                {
+                    Console.WriteLine($"🏆✨ CHAMPION CLASS NOW AVAILABLE! Visit the town to ascend to a Champion Class! 🏆✨");
+                }
             }
             else if (Level == Playerleveling.MaxLevel)
             {

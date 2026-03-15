@@ -58,6 +58,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine("2) GreyWolf Bank & Storage");
                 Console.WriteLine("3) Adventurer's Guild (Quest Board)");
                 Console.WriteLine("4) Hunter's Lodge (Bounty Board)");
+                Console.WriteLine("5) Training Hall (Level Up Faster) ⚔️🏆");
                 Console.WriteLine("0) Return to Town Square");
                 Console.Write("Choice: ");
 
@@ -76,6 +77,9 @@ namespace Rpg_Dungeon
                         break;
                     case "4":
                         VisitBountyBoard(party);
+                        break;
+                    case "5":
+                        VisitTrainingHall(party);
                         break;
                     case "0":
                         return;
@@ -273,6 +277,18 @@ namespace Rpg_Dungeon
                 return;
             }
             _bountyBoard.OpenBountyBoard(party, _journal);
+        }
+
+        private void VisitTrainingHall(List<Character> party)
+        {
+            Console.WriteLine("\n╔════════════════════════════════════════╗");
+            Console.WriteLine("║    Training Hall - Academy of Mastery ║");
+            Console.WriteLine("╚════════════════════════════════════════╝");
+            Console.WriteLine("⚔️ 'Welcome to the Training Hall!'");
+            Console.WriteLine("🏆 'We have trainers for all classes—base and champion alike!'\n");
+
+            TrainingHall trainingHall = new TrainingHall();
+            trainingHall.EnterTrainingHall(party);
         }
 
         #endregion

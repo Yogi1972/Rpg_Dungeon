@@ -41,8 +41,8 @@ namespace Rpg_Dungeon
                 Console.WriteLine("\nWhat would you like to do?");
                 Console.WriteLine("1) Rest");
                 Console.WriteLine("2) Forage");
-                Console.WriteLine("3) Forge (Craft Equipment)");
-                Console.WriteLine("4) Brew Potions (Mage/Priest)");
+                Console.WriteLine("3) Search for Resources");
+                Console.WriteLine("4) Crafting Workshop");
                 Console.WriteLine("5) View party");
                 Console.WriteLine("6) Options (save/load/exit)");
                 Console.WriteLine("0) Leave camp");
@@ -60,10 +60,10 @@ namespace Rpg_Dungeon
                         Forage(party, weather);
                         break;
                     case "3":
-                        Crafting.OpenForge(party);
+                        SearchForResources(party, weather);
                         break;
                     case "4":
-                        Crafting.OpenPotionBrewing(party);
+                        Crafting.OpenCraftingWorkshop(party);
                         break;
                     case "5":
                         ShowParty(party);
@@ -76,7 +76,7 @@ namespace Rpg_Dungeon
                         Console.WriteLine(GetBreakCampMessage(weather));
                         return null;
                     default:
-                        Console.WriteLine("Invalid choice. Enter 0-6.");
+                        Console.WriteLine("Invalid choice. Enter 0-7.");
                         break;
                 }
             }
@@ -290,6 +290,61 @@ namespace Rpg_Dungeon
                     Console.WriteLine("The weather made foraging nearly impossible.");
                 }
             }
+        }
+
+        #endregion
+
+        #region Resource Searching
+
+        private static void SearchForResources(List<Character> party, Weather? weather)
+        {
+            if (party == null || party.Count == 0) return;
+
+            // Determine terrain from current location
+            // Try to get location coordinates from a party member
+            var leader = party.FirstOrDefault();
+            if (leader == null) return;
+
+            // For now, use a simple method to determine terrain based on location name
+            // In a more integrated system, you'd get actual coordinates from the world map
+            TerrainType terrain = DetermineTerrainFromLocation(leader.CurrentLocation);
+
+            ResourceGathering.SearchForResources(party, terrain, weather);
+        }
+
+        private static TerrainType DetermineTerrainFromLocation(string locationName)
+        {
+            // Map location names to terrain types based on region
+            var locationLower = locationName.ToLower();
+
+            if (locationLower.Contains("ironforge") || locationLower.Contains("mountain") || 
+                locationLower.Contains("stormwatch") || locationLower.Contains("cliff") ||
+                locationLower.Contains("eagle") || locationLower.Contains("cave") ||
+                locationLower.Contains("frost"))
+                return TerrainType.Mountains;
+
+            if (locationLower.Contains("mysthaven") || locationLower.Contains("crystalshore") || 
+                locationLower.Contains("coast") || locationLower.Contains("seaside") ||
+                locationLower.Contains("fisher") || locationLower.Contains("ferry"))
+                return TerrainType.Water;
+
+            if (locationLower.Contains("sunspire") || locationLower.Contains("desert") || 
+                locationLower.Contains("oasis") || locationLower.Contains("dune") ||
+                locationLower.Contains("nomad") || locationLower.Contains("sand"))
+                return TerrainType.Desert;
+
+            if (locationLower.Contains("shadowkeep") || locationLower.Contains("forest") || 
+                locationLower.Contains("hunter") || locationLower.Contains("woodcutter") ||
+                locationLower.Contains("druid") || locationLower.Contains("ranger") ||
+                locationLower.Contains("pinewood"))
+                return TerrainType.Forest;
+
+            if (locationLower.Contains("emberpeak") || locationLower.Contains("volcanic") || 
+                locationLower.Contains("lava") || locationLower.Contains("ash"))
+                return TerrainType.Volcanic;
+
+            // Default to plains
+            return TerrainType.Plains;
         }
 
         #endregion

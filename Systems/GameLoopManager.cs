@@ -24,6 +24,9 @@ namespace Rpg_Dungeon
             var timeTracker = new TimeOfDay();
             var journal = new Journal();
             var worldMap = new Map(weather, timeTracker);
+            var npcManager = new NPCManager();
+            var mainStoryline = new MainStoryline();
+            var fogOfWarMap = new FogOfWarMap();
 
             weather.SetTimeTracker(timeTracker);
 
@@ -32,9 +35,18 @@ namespace Rpg_Dungeon
             town.SetWeather(weather);
             town.SetTimeTracker(timeTracker);
 
+            // Show story introduction
+            if (!mainStoryline.HasSeenIntro())
+            {
+                mainStoryline.ShowIntroduction();
+            }
+
             while (true)
             {
                 weather.UpdateWeather();
+
+                // Display current story objective
+                mainStoryline.DisplayCurrentObjective();
 
                 DisplayMainMenu(multiplayer);
 
@@ -69,7 +81,7 @@ namespace Rpg_Dungeon
                 }
                 else if (choice.Trim() == "6")
                 {
-                    worldMap.OpenMap(party, questBoard, bountyBoard, achievementTracker, journal);
+                    worldMap.OpenMap(party, questBoard, bountyBoard, achievementTracker, journal, mainStoryline, npcManager, fogOfWarMap);
                 }
                 else if (choice.Trim() == "7")
                 {
@@ -109,6 +121,14 @@ namespace Rpg_Dungeon
                 else if (choice.Trim() == "14")
                 {
                     TestEncounterMenu(party);
+                }
+                else if (choice.Trim() == "15")
+                {
+                    fogOfWarMap.DisplayMap(party, mainStoryline);
+                }
+                else if (choice.Trim() == "16")
+                {
+                    mainStoryline.DisplayStoryJournal();
                 }
                 else if (choice.Trim() == "0")
                 {
@@ -150,6 +170,8 @@ namespace Rpg_Dungeon
             Console.WriteLine("12) Open Journal");
             Console.WriteLine("13) Trade with Party");
             Console.WriteLine("14) Test Encounter System");
+            Console.WriteLine("15) View Fog of War Map 🗺️");
+            Console.WriteLine("16) View Story Progress 📖");
             Console.WriteLine("0) Quit");
             Console.Write("Choose: ");
         }
