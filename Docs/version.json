@@ -1,8 +1,8 @@
 {
   "majorVersion": 1,
-  "minorVersion": 0,
+  "minorVersion": 1,
   "patchVersion": 0,
   "preReleaseTag": null,
-  "releaseNotes": "Initial release of RPG Dungeon Crawler with character creation, dungeon exploration, quest system, multiplayer support, and more!",
-  "releaseDate": "2025-01-01"
+  "releaseNotes": "Combat improvements: Added tactical stance system (Aggressive/Defensive/Balanced) and status effects framework (Bleeding, Stunned, Poisoned, Burning, Frozen, Weakened, Vulnerable, Regenerating)",
+  "releaseDate": "2026-01-15"
 }

@@ -42,6 +42,8 @@ namespace Night.Characters
 
         public string CurrentLocation { get; set; }
 
+        public CombatStance CurrentStance { get; set; }
+
         #endregion
 
         #region Constructor
@@ -54,6 +56,7 @@ namespace Night.Characters
             Experience = 0;
             ThreatLevel = 0;
             CurrentLocation = "Town";
+            CurrentStance = CombatStance.Balanced;
             SkillTree = SkillTreeFactory.CreateSkillTreeForCharacter(this);
         }
 
@@ -190,6 +193,10 @@ namespace Night.Characters
             if (Inventory.EquippedRing2 != null) total += Inventory.EquippedRing2.ArmorBonus;
             if (Inventory.EquippedOffHand != null) total += Inventory.EquippedOffHand.ArmorBonus;
             if (SkillTree != null) total += SkillTree.GetTotalArmorBonus();
+
+            double stanceMultiplier = CombatStanceModifiers.GetArmorMultiplier(CurrentStance);
+            total = (int)(total * stanceMultiplier);
+
             return total;
         }
 
@@ -200,6 +207,18 @@ namespace Night.Characters
         public virtual void ReceiveDamage(int amount)
         {
             if (amount <= 0) return;
+
+            // Apply status effect modifiers
+            double statusMultiplier = StatusEffectManager.GetDamageTakenModifier(this);
+            if (statusMultiplier != 1.0)
+            {
+                int modifiedAmount = (int)(amount * statusMultiplier);
+                if (modifiedAmount != amount)
+                {
+                    Console.Write($" [Vulnerable: {amount} → {modifiedAmount}]");
+                    amount = modifiedAmount;
+                }
+            }
 
             int totalAR = GetTotalArmorRating();
             int reducedDamage = Math.Max(1, amount - totalAR);
@@ -247,6 +266,20 @@ namespace Night.Characters
         #endregion
 
         #region Combat
+
+        public void ChangeStance(CombatStance newStance)
+        {
+            if (CurrentStance == newStance)
+            {
+                Console.WriteLine($"{Name} is already in {newStance} stance.");
+                return;
+            }
+
+            CurrentStance = newStance;
+            Console.ForegroundColor = CombatStanceModifiers.GetStanceColor(newStance);
+            Console.WriteLine($"\n{CombatStanceModifiers.GetStanceIcon(newStance)} {Name} switches to {CombatStanceModifiers.GetStanceDescription(newStance)}");
+            Console.ResetColor();
+        }
 
         public abstract void Attack(Character target);
 
