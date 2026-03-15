@@ -191,6 +191,7 @@ namespace Rpg_Dungeon
                         Strength = p.Strength,
                         Agility = p.Agility,
                         Intelligence = p.Intelligence,
+                        ChampionClass = p.ChampionClass,
                         Pet = p.Pet == null ? null : new PetData
                         {
                             Name = p.Pet.Name,
@@ -337,6 +338,7 @@ namespace Rpg_Dungeon
                         Strength = p.Strength,
                         Agility = p.Agility,
                         Intelligence = p.Intelligence,
+                        ChampionClass = p.ChampionClass,
                         Pet = p.Pet == null ? null : new PetData
                         {
                             Name = p.Pet.Name,
@@ -502,6 +504,12 @@ namespace Rpg_Dungeon
 
                     // restore stats
                     ch.RestoreProgress(cd.Level, cd.Experience, cd.Health, cd.MaxHealth, cd.Mana, cd.MaxMana, cd.Stamina, cd.MaxStamina, cd.Strength, cd.Agility, cd.Intelligence);
+
+                    // Restore champion class if present
+                    if (!string.IsNullOrEmpty(cd.ChampionClass))
+                    {
+                        ch.ChampionClass = cd.ChampionClass;
+                    }
 
                     // Restore pet if present
                     if (cd.Pet != null)
@@ -711,6 +719,7 @@ namespace Rpg_Dungeon
             public int Strength { get; set; }
             public int Agility { get; set; }
             public int Intelligence { get; set; }
+            public string? ChampionClass { get; set; }
             public InventoryData? Inventory { get; set; }
             public PetData? Pet { get; set; }
             public SkillTreeData? SkillTree { get; set; }

@@ -105,6 +105,8 @@ namespace Rpg_Dungeon
             string bonusText = isMultiplayer ? "✓ Racial bonuses applied: " : "\nRacial bonuses applied: ";
             Console.WriteLine($"{bonusText}{race}");
 
+            ProfessionManager.SelectProfessions(character);
+
             character.Inventory.AddGold(50);
 
             return character;

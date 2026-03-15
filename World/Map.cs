@@ -165,7 +165,8 @@ namespace Rpg_Dungeon
         #region Map Navigation
 
         public void OpenMap(List<Character> party, QuestBoard questBoard, BountyBoard bountyBoard, 
-                           AchievementTracker achievementTracker, Journal journal)
+                           AchievementTracker achievementTracker, Journal journal, MainStoryline mainStoryline, 
+                           NPCManager npcManager, FogOfWarMap fogOfWarMap)
         {
             while (true)
             {
@@ -210,6 +211,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine("T) Travel to Area");
                 Console.WriteLine("V) View Area Details");
                 Console.WriteLine("E) Explore Current Area");
+                Console.WriteLine("M) View Fog of War Map 🗺️");
                 Console.WriteLine("0) Return to Main Menu");
                 Console.Write("Choose: ");
 
@@ -232,6 +234,9 @@ namespace Rpg_Dungeon
                         {
                             Console.WriteLine("You are currently in town. Select an area to travel to first.");
                         }
+                        break;
+                    case "M":
+                        fogOfWarMap.DisplayMap(party, mainStoryline);
                         break;
                     case "0":
                         return;

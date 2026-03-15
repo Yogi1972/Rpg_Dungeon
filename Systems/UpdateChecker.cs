@@ -24,26 +24,26 @@ namespace Rpg_Dungeon.Systems
             public int MajorVersion { get; set; }
             public int MinorVersion { get; set; }
             public int PatchVersion { get; set; }
-            public string PreReleaseTag { get; set; }
-            public string ReleaseNotes { get; set; }
-            public string ReleaseDate { get; set; }
+            public string? PreReleaseTag { get; set; }
+            public string? ReleaseNotes { get; set; }
+            public string? ReleaseDate { get; set; }
         }
 
         /// <summary>
         /// Check for updates from GitHub
         /// </summary>
-        public static async Task<VersionInfo> CheckForUpdatesAsync()
+        public static async Task<VersionInfo?> CheckForUpdatesAsync()
         {
             try
             {
                 _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Rpg-Dungeon-Crawler/1.0");
-                
+
                 var response = await _httpClient.GetStringAsync(VersionControl.GitHubVersionCheckUrl);
                 var versionInfo = JsonSerializer.Deserialize<VersionInfo>(response, new JsonSerializerOptions 
                 { 
                     PropertyNameCaseInsensitive = true 
                 });
-                
+
                 return versionInfo;
             }
             catch (HttpRequestException ex)
