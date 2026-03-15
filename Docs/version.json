@@ -1,8 +1,8 @@
 {
-  "majorVersion": 1,
-  "minorVersion": 1,
+  "majorVersion": 2,
+  "minorVersion": 0,
   "patchVersion": 0,
   "preReleaseTag": null,
-  "releaseNotes": "Combat improvements: Added tactical stance system (Aggressive/Defensive/Balanced) and status effects framework (Bleeding, Stunned, Poisoned, Burning, Frozen, Weakened, Vulnerable, Regenerating)",
-  "releaseDate": "2026-01-15"
+  "releaseNotes": "Major update: Added 12 champion classes, expanded world map system with new locations, refactored crafting system with profession stations, enhanced gameplay features, and improved game systems",
+  "releaseDate": "2025-01-17"
 }

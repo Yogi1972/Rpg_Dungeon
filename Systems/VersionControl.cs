@@ -11,7 +11,7 @@ namespace Rpg_Dungeon.Systems
         /// <summary>
         /// Current major version number (breaking changes)
         /// </summary>
-        public const int MajorVersion = 1;
+        public const int MajorVersion = 2;
 
         /// <summary>
         /// Current minor version number (new features)
@@ -47,7 +47,7 @@ namespace Rpg_Dungeon.Systems
         /// <summary>
         /// Build date of this version
         /// </summary>
-        public static readonly DateTime BuildDate = new DateTime(2025, 1, 1);
+        public static readonly DateTime BuildDate = new DateTime(2025, 1, 17);
 
         /// <summary>
         /// Gets the full version string (e.g., "1.0.0" or "1.2.3-beta")
