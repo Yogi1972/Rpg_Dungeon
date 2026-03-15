@@ -171,6 +171,17 @@ namespace Rpg_Dungeon
                 foreach (var member in party.Where(p => p.IsAlive))
                 {
                     if (mobHp <= 0) break;
+
+                    // Process status effects at start of turn
+                    StatusEffectManager.ProcessEffects(member);
+
+                    // Check if stunned - skip turn
+                    if (StatusEffectManager.IsStunned(member))
+                    {
+                        Console.WriteLine($"\n{member.Name} is stunned and skips this turn!");
+                        continue;
+                    }
+
                     // Prompt player for action
                     Console.Write($"\n{member.Name}'s turn (Lv {member.Level}). HP={member.Health}");
 
@@ -187,6 +198,21 @@ namespace Rpg_Dungeon
                         Console.Write($" [TAUNTING:{w.TauntDuration}]");
                     }
 
+                    // Display current stance
+                    Console.Write($" {CombatStanceModifiers.GetStanceIcon(member.CurrentStance)}");
+
+                    // Display active status effects
+                    var activeEffects = StatusEffectManager.GetActiveEffects(member);
+                    if (activeEffects.Any())
+                    {
+                        Console.Write(" [");
+                        foreach (var effect in activeEffects)
+                        {
+                            Console.Write($"{effect.GetIcon()}");
+                        }
+                        Console.Write("]");
+                    }
+
                     Console.Write($"\n{mob.Name} (Lv {mob.Level}): {mobHp}/{mob.Health} HP");
                     Console.Write($"\nChoose action: ");
                     Console.Write($"\n1. Attack ");
@@ -194,13 +220,15 @@ namespace Rpg_Dungeon
                     if (member is Warrior warrior)
                     {
                         Console.Write($"\n3. Taunt (Draw aggro) ");
-                        Console.Write($"\n4. Use item ");
-                        Console.Write($"\n5. Pass ");
+                        Console.Write($"\n4. Change Stance ({member.CurrentStance}) ");
+                        Console.Write($"\n5. Use item ");
+                        Console.Write($"\n6. Pass ");
                     }
                     else
                     {
-                        Console.Write($"\n3. Use item ");
-                        Console.Write($"\n4. Pass ");
+                        Console.Write($"\n3. Change Stance ({member.CurrentStance}) ");
+                        Console.Write($"\n4. Use item ");
+                        Console.Write($"\n5. Pass ");
                     }
                     Console.Write("Action: ");
 
@@ -247,6 +275,30 @@ namespace Rpg_Dungeon
                             else if (member is Warrior) baseDamage = member.GetTotalStrength();
 
                             int dmg = crit ? baseDamage * 2 : baseDamage;
+
+                            // Apply combat stance damage modifier
+                            double stanceMultiplier = CombatStanceModifiers.GetDamageMultiplier(member.CurrentStance);
+                            if (stanceMultiplier != 1.0)
+                            {
+                                int stanceDmg = (int)(dmg * stanceMultiplier);
+                                if (stanceDmg != dmg)
+                                {
+                                    Console.Write($" [{CombatStanceModifiers.GetStanceIcon(member.CurrentStance)} Stance: {dmg} → {stanceDmg}]");
+                                    dmg = stanceDmg;
+                                }
+                            }
+
+                            // Apply status effect damage modifiers
+                            double statusMultiplier = StatusEffectManager.GetDamageModifier(member);
+                            if (statusMultiplier != 1.0)
+                            {
+                                int statusDmg = (int)(dmg * statusMultiplier);
+                                if (statusDmg != dmg)
+                                {
+                                    Console.Write($" [Weakened: {dmg} → {statusDmg}]");
+                                    dmg = statusDmg;
+                                }
+                            }
 
                             // Apply skill damage bonus
                             if (member.SkillTree != null)
@@ -310,9 +362,25 @@ namespace Rpg_Dungeon
                         SpecialUsedLastTurn[member.Name] = false;
                         ((Warrior)member).Taunt();
                     }
-                    else if ((member is Warrior && act == "4") || (!(member is Warrior) && act == "3"))
+                    else if (member is Warrior && act == "4")
                     {
-                        // seting special used last turn to false to allow using special again after using item
+                        // Change stance (Warrior)
+                        ChangeStanceMenu(member);
+                    }
+                    else if (member is Warrior && act == "5")
+                    {
+                        // Use item (Warrior)
+                        SpecialUsedLastTurn[member.Name] = false;
+                        UseItemDuringCombat(member, party, mob, ref mobHp);
+                    }
+                    else if (!(member is Warrior) && act == "3")
+                    {
+                        // Change stance (non-Warrior)
+                        ChangeStanceMenu(member);
+                    }
+                    else if (!(member is Warrior) && act == "4")
+                    {
+                        // Use item (non-Warrior)
                         SpecialUsedLastTurn[member.Name] = false;
                         UseItemDuringCombat(member, party, mob, ref mobHp);
                     }
@@ -490,6 +558,9 @@ namespace Rpg_Dungeon
             {
                 Console.Write("The party was defeated...");
             }
+
+            // Clear all status effects after combat
+            StatusEffectManager.ClearAllCombatEffects();
 
             return partyWon;
         }
@@ -792,6 +863,43 @@ namespace Rpg_Dungeon
 
             // Item cannot be used in combat
             Console.WriteLine($"{selectedItem.Name} cannot be used in combat or has no effect.");
+        }
+
+        #endregion
+
+        #region Stance Management
+
+        private static void ChangeStanceMenu(Character character)
+        {
+            Console.WriteLine($"\n--- Combat Stance Selection for {character.Name} ---");
+            Console.WriteLine($"Current: {CombatStanceModifiers.GetStanceDescription(character.CurrentStance)}");
+            Console.WriteLine("\nAvailable Stances:");
+            Console.WriteLine("1) ⚖️  BALANCED - No modifiers (default)");
+            Console.WriteLine("2) ⚔️  AGGRESSIVE - +30% damage, -20% armor (glass cannon)");
+            Console.WriteLine("3) 🛡️  DEFENSIVE - -20% damage, +40% armor (tank mode)");
+            Console.WriteLine("0) Cancel");
+            Console.Write("\nSelect stance: ");
+
+            var choice = Console.ReadLine() ?? string.Empty;
+
+            switch (choice.Trim())
+            {
+                case "1":
+                    character.ChangeStance(CombatStance.Balanced);
+                    break;
+                case "2":
+                    character.ChangeStance(CombatStance.Aggressive);
+                    break;
+                case "3":
+                    character.ChangeStance(CombatStance.Defensive);
+                    break;
+                case "0":
+                    Console.WriteLine("Stance unchanged.");
+                    break;
+                default:
+                    Console.WriteLine("Invalid choice. Stance unchanged.");
+                    break;
+            }
         }
 
         #endregion
