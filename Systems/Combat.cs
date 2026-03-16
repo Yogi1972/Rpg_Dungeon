@@ -185,66 +185,121 @@ namespace Rpg_Dungeon
                     // Process status effects at start of turn
                     StatusEffectManager.ProcessEffects(member);
 
+                    // Reduce ability cooldowns
+                    if (member.Abilities != null && member.Abilities.Count > 0)
+                    {
+                        member.ReduceAbilityCooldowns();
+                    }
+
+                    // Process character's own status effects
+                    if (member.ActiveStatusEffects != null && member.ActiveStatusEffects.Count > 0)
+                    {
+                        member.ProcessStatusEffects();
+                    }
+
                     // Check if stunned - skip turn
                     if (StatusEffectManager.IsStunned(member))
                     {
-                        Console.WriteLine($"\n{member.Name} is stunned and skips this turn!");
+                        Console.WriteLine($"\n💫 {member.Name} is stunned and skips this turn!");
+                        continue;
+                    }
+
+                    // Check character's own status for stun
+                    if (member.HasStatusEffect(StatusEffectType.Stunned))
+                    {
+                        Console.WriteLine($"\n💫 {member.Name} is stunned and skips this turn!");
                         continue;
                     }
 
                     // Prompt player for action
-                    Console.Write($"\n{member.Name}'s turn (Lv {member.Level}). HP={member.Health}");
+                    Console.WriteLine($"\n╔═══════════════════════════════════════════════════════════════════╗");
+                    Console.WriteLine($"║  {member.Name}'s Turn (Lv {member.Level})");
+                    Console.WriteLine($"╚═══════════════════════════════════════════════════════════════════╝");
 
-                    // Display Mana or Stamina based on class
+                    // Display stats
+                    Console.Write($"💚 HP: {member.Health}/{member.MaxHealth}");
                     if (member is Warrior || member is Rogue)
-                        Console.Write($", Stamina={member.Stamina}");
+                        Console.Write($" | ⚡ Stamina: {member.Stamina}/{member.MaxStamina}");
                     else if (member is Mage || member is Priest)
-                        Console.Write($", Mana={member.Mana}");
+                        Console.Write($" | 🔮 Mana: {member.Mana}/{member.MaxMana}");
 
-                    // Display threat level and taunt status
-                    Console.Write($", Threat={member.ThreatLevel}");
+                    Console.Write($" | 🎯 Threat: {member.ThreatLevel}");
                     if (member is Warrior w && w.IsTaunting)
                     {
-                        Console.Write($" [TAUNTING:{w.TauntDuration}]");
+                        Console.Write($" | 🛡️ [TAUNTING:{w.TauntDuration}]");
                     }
+                    Console.WriteLine();
 
-                    // Display current stance
-                    Console.Write($" {CombatStanceModifiers.GetStanceIcon(member.CurrentStance)}");
+                    // Display stance
+                    Console.Write($"Stance: {CombatStanceModifiers.GetStanceIcon(member.CurrentStance)} {member.CurrentStance}");
 
                     // Display active status effects
-                    var activeEffects = StatusEffectManager.GetActiveEffects(member);
-                    if (activeEffects.Any())
+                    if (member.ActiveStatusEffects.Any())
                     {
-                        Console.Write(" [");
-                        foreach (var effect in activeEffects)
+                        Console.Write(" | Status: ");
+                        foreach (var effect in member.ActiveStatusEffects)
                         {
-                            Console.Write($"{effect.GetIcon()}");
+                            Console.Write($"{effect.GetIcon()}{effect.Type}({effect.Duration}) ");
                         }
-                        Console.Write("]");
+                    }
+                    Console.WriteLine();
+
+                    // Display enemy status
+                    Console.WriteLine($"\n🎯 Enemy: {mob.Name} (Lv {mob.Level}) | HP: {mobHp}/{mob.Health}");
+
+                    // Display abilities if initialized
+                    if (member.Abilities != null && member.Abilities.Count > 0)
+                    {
+                        Console.WriteLine("\n⚔️  ABILITIES:");
+                        DisplayAbilities(member);
                     }
 
-                    Console.Write($"\n{mob.Name} (Lv {mob.Level}): {mobHp}/{mob.Health} HP");
-                    Console.Write($"\nChoose action: ");
-                    Console.Write($"\n1. Attack ");
-                    Console.Write($"\n2. Special ");
+                    Console.WriteLine("\n📋 ACTIONS:");
+                    Console.Write($"1. ⚔️  Attack ");
+                    Console.Write($"\n2. ✨ Special (Legacy) ");
+
                     if (member is Warrior warrior)
                     {
-                        Console.Write($"\n3. Taunt (Draw aggro) ");
-                        Console.Write($"\n4. Change Stance ({member.CurrentStance}) ");
-                        Console.Write($"\n5. Use item ");
-                        Console.Write($"\n6. Pass ");
+                        Console.Write($"\n3. 🛡️  Taunt (Draw aggro) ");
+                        Console.Write($"\n4. 🔄 Change Stance ");
+                        Console.Write($"\n5. 💼 Use Item ");
+                        Console.Write($"\n6. ⏭️  Pass ");
                     }
                     else
                     {
-                        Console.Write($"\n3. Change Stance ({member.CurrentStance}) ");
-                        Console.Write($"\n4. Use item ");
-                        Console.Write($"\n5. Pass ");
+                        Console.Write($"\n3. 🔄 Change Stance ");
+                        Console.Write($"\n4. 💼 Use Item ");
+                        Console.Write($"\n5. ⏭️  Pass ");
                     }
-                    Console.Write("Action: ");
+
+                    // Add ability quick-select if available
+                    if (member.Abilities != null && member.Abilities.Count > 0)
+                    {
+                        Console.Write($"\n\n💫 Quick Abilities: A1-A{member.Abilities.Count}");
+                    }
+
+                    Console.Write("\n\nAction: ");
 
                     // This is to get the users input for their action, in a real game this would be more robust with error handling and possibly a UI instead of console.
                     String act = Console.ReadLine() ?? string.Empty;
-                    act = act.Trim();
+                    act = act.Trim().ToUpper();
+
+                    // Handle ability quick-select (A1, A2, A3, A4)
+                    if (act.StartsWith("A") && act.Length >= 2 && member.Abilities != null && member.Abilities.Count > 0)
+                    {
+                        if (int.TryParse(act.Substring(1), out int abilityIndex) && abilityIndex >= 1 && abilityIndex <= member.Abilities.Count)
+                        {
+                            var ability = member.Abilities[abilityIndex - 1];
+                            UseAbilityInCombat(member, ability, mob, ref mobHp, party);
+                            SpecialUsedLastTurn[member.Name] = false;
+                            continue;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid ability selection!");
+                            continue;
+                        }
+                    }
 
                     if (act == "1")
                     {
@@ -942,6 +997,212 @@ namespace Rpg_Dungeon
                     Console.WriteLine("Invalid choice. Stance unchanged.");
                     break;
             }
+        }
+
+        #endregion
+
+        #region Ability System
+
+        /// <summary>
+        /// Display character's available abilities with cooldowns and costs
+        /// </summary>
+        private static void DisplayAbilities(Character character)
+        {
+            if (character.Abilities == null || character.Abilities.Count == 0)
+            {
+                Console.WriteLine("  No abilities available.");
+                return;
+            }
+
+            for (int i = 0; i < character.Abilities.Count; i++)
+            {
+                var ability = character.Abilities[i];
+                Console.ForegroundColor = ability.CanUse(character) ? ConsoleColor.Cyan : ConsoleColor.DarkGray;
+
+                string status = ability.CanUse(character) ? "✓" : "✗";
+                string cooldownText = ability.CurrentCooldown > 0 ? $" (CD: {ability.CurrentCooldown})" : "";
+                string costText = ability.ResourceCost > 0 ? $" [{ability.ResourceCost} {ability.ResourceType}]" : "";
+
+                Console.WriteLine($"  A{i + 1}. {status} {ability.Icon} {ability.Name}{costText}{cooldownText}");
+
+                if (!ability.CanUse(character) && ability.CurrentCooldown == 0)
+                {
+                    Console.WriteLine($"      ⚠️  Insufficient {ability.ResourceType}");
+                }
+
+                Console.ResetColor();
+            }
+        }
+
+        /// <summary>
+        /// Use an ability in combat
+        /// </summary>
+        private static void UseAbilityInCombat(Character user, CombatAbility ability, Mob target, ref int mobHp, List<Character> party)
+        {
+            if (!ability.CanUse(user))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"\n❌ {user.Name} cannot use {ability.Name}!");
+                Console.ResetColor();
+                return;
+            }
+
+            // Consume resources
+            ability.ConsumeResource(user);
+
+            // Display ability usage
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"╔═══════════════════════════════════════════╗");
+            Console.WriteLine($"║  {ability.Icon} {ability.Name.ToUpper()}");
+            Console.WriteLine($"╚═══════════════════════════════════════════╝");
+            Console.ResetColor();
+            Console.WriteLine($"{user.Name} uses {ability.Name}!");
+
+            // Apply ability effects based on target type
+            switch (ability.TargetType)
+            {
+                case TargetType.SingleEnemy:
+                    ApplyAbilityToEnemy(user, ability, target, ref mobHp);
+                    break;
+
+                case TargetType.AllEnemies:
+                    // For single mob encounters, just apply to the mob
+                    ApplyAbilityToEnemy(user, ability, target, ref mobHp);
+                    Console.WriteLine($"💥 (Would hit all enemies in group combat)");
+                    break;
+
+                case TargetType.Self:
+                    ApplyAbilityToAlly(user, ability, user);
+                    break;
+
+                case TargetType.SingleAlly:
+                    // Prompt for ally selection
+                    var selectedAlly = SelectAllyTarget(party);
+                    if (selectedAlly != null)
+                    {
+                        ApplyAbilityToAlly(user, ability, selectedAlly);
+                    }
+                    break;
+
+                case TargetType.AllAllies:
+                    foreach (var ally in party.Where(p => p.IsAlive))
+                    {
+                        ApplyAbilityToAlly(user, ability, ally);
+                    }
+                    break;
+            }
+
+            Console.WriteLine();
+        }
+
+        /// <summary>
+        /// Apply ability effects to an enemy
+        /// </summary>
+        private static void ApplyAbilityToEnemy(Character user, CombatAbility ability, Mob target, ref int mobHp)
+        {
+            if (ability.BaseDamage > 0 || ability.DamageMultiplier > 1.0)
+            {
+                int damage = ability.CalculateDamage(user);
+
+                // Apply combat stance modifier
+                double stanceMultiplier = CombatStanceModifiers.GetDamageMultiplier(user.CurrentStance);
+                if (stanceMultiplier != 1.0)
+                {
+                    int oldDamage = damage;
+                    damage = (int)(damage * stanceMultiplier);
+                    Console.WriteLine($"  {CombatStanceModifiers.GetStanceIcon(user.CurrentStance)} Stance Bonus: {oldDamage} → {damage}");
+                }
+
+                // Apply mob armor
+                int finalDamage = Math.Max(1, damage - target.ArmorRating);
+                if (finalDamage < damage)
+                {
+                    Console.WriteLine($"  🛡️  Armor Reduction: {damage} → {finalDamage}");
+                }
+
+                mobHp = Math.Max(0, mobHp - finalDamage);
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"  💥 {finalDamage} damage dealt to {target.Name}!");
+                Console.ResetColor();
+                Console.WriteLine($"  📊 {target.Name} HP: {mobHp}/{target.Health}");
+
+                // Generate threat
+                int threat = finalDamage;
+                if (user is Warrior) threat = (int)(threat * 1.5);
+                user.ThreatLevel += threat;
+            }
+
+            // Apply status effect if ability has one
+            if (ability.StatusEffect.HasValue)
+            {
+                var statusEffect = new StatusEffect(
+                    ability.StatusEffect.Value,
+                    ability.StatusDuration,
+                    ability.StatusPotency,
+                    user.Name
+                );
+
+                // For now, display that status would be applied (mob status system needs enhancement)
+                Console.ForegroundColor = statusEffect.GetColor();
+                Console.WriteLine($"  {statusEffect.GetIcon()} {statusEffect.Type} applied! ({ability.StatusDuration} turns, {ability.StatusPotency} potency)");
+                Console.ResetColor();
+
+                // TODO: Apply to mob when mob status effect system is implemented
+            }
+        }
+
+        /// <summary>
+        /// Apply ability effects to an ally
+        /// </summary>
+        private static void ApplyAbilityToAlly(Character user, CombatAbility ability, Character target)
+        {
+            // Apply status effect if ability has one
+            if (ability.StatusEffect.HasValue)
+            {
+                var statusEffect = new StatusEffect(
+                    ability.StatusEffect.Value,
+                    ability.StatusDuration,
+                    ability.StatusPotency,
+                    user.Name
+                );
+
+                target.AddStatusEffect(statusEffect);
+
+                Console.ForegroundColor = statusEffect.GetColor();
+                Console.WriteLine($"  {statusEffect.GetIcon()} {statusEffect.Type} applied to {target.Name}! ({ability.StatusDuration} turns)");
+                Console.ResetColor();
+
+                // Generate small amount of threat for support abilities
+                user.ThreatLevel += 5;
+            }
+        }
+
+        /// <summary>
+        /// Let player select an ally target
+        /// </summary>
+        private static Character? SelectAllyTarget(List<Character> party)
+        {
+            Console.WriteLine("\nSelect target ally:");
+            var aliveAllies = party.Where(p => p.IsAlive).ToList();
+
+            for (int i = 0; i < aliveAllies.Count; i++)
+            {
+                var ally = aliveAllies[i];
+                Console.WriteLine($"  {i + 1}. {ally.Name} - HP: {ally.Health}/{ally.MaxHealth}");
+            }
+
+            Console.Write("Select (1-{0}): ", aliveAllies.Count);
+            string input = Console.ReadLine() ?? "";
+
+            if (int.TryParse(input, out int choice) && choice >= 1 && choice <= aliveAllies.Count)
+            {
+                return aliveAllies[choice - 1];
+            }
+
+            Console.WriteLine("Invalid selection!");
+            return null;
         }
 
         #endregion

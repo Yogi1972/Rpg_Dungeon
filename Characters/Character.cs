@@ -52,6 +52,10 @@ namespace Night.Characters
 
         public CraftingProfession SecondaryProfession { get; set; }
 
+        public List<CombatAbility> Abilities { get; set; }
+
+        public List<StatusEffect> ActiveStatusEffects { get; set; }
+
         #endregion
 
         #region Constructor
@@ -68,6 +72,8 @@ namespace Night.Characters
             SkillTree = SkillTreeFactory.CreateSkillTreeForCharacter(this);
             PrimaryProfession = CraftingProfession.None;
             SecondaryProfession = CraftingProfession.None;
+            Abilities = new List<CombatAbility>();
+            ActiveStatusEffects = new List<StatusEffect>();
         }
 
         #endregion
@@ -259,6 +265,30 @@ namespace Night.Characters
             Stamina = Math.Min(MaxStamina, Stamina + amount);
         }
 
+        public void ModifyMana(int amount)
+        {
+            if (amount > 0)
+            {
+                RestoreMana(amount);
+            }
+            else
+            {
+                Mana = Math.Max(0, Mana + amount);
+            }
+        }
+
+        public void ModifyStamina(int amount)
+        {
+            if (amount > 0)
+            {
+                RestoreStamina(amount);
+            }
+            else
+            {
+                Stamina = Math.Max(0, Stamina + amount);
+            }
+        }
+
         public int GetEffectiveManaCost(int baseCost)
         {
             if (SkillTree == null) return baseCost;
@@ -357,6 +387,102 @@ namespace Night.Characters
             }
 
             Console.WriteLine();
+        }
+
+        #endregion
+
+        #region Combat Abilities
+
+        /// <summary>
+        /// Initialize abilities for this character based on their class
+        /// </summary>
+        public void InitializeAbilities()
+        {
+            Abilities = AbilityFactory.GetAbilitiesForCharacter(this);
+        }
+
+        /// <summary>
+        /// Use a combat ability
+        /// </summary>
+        public bool UseAbility(CombatAbility ability, Character? target = null)
+        {
+            if (!ability.CanUse(this))
+            {
+                Console.WriteLine($"{Name} cannot use {ability.Name}!");
+                return false;
+            }
+
+            ability.ConsumeResource(this);
+            return true;
+        }
+
+        /// <summary>
+        /// Reduce cooldowns on all abilities (call at end of turn)
+        /// </summary>
+        public void ReduceAbilityCooldowns()
+        {
+            foreach (var ability in Abilities)
+            {
+                ability.ReduceCooldown();
+            }
+        }
+
+        /// <summary>
+        /// Add a status effect to this character
+        /// </summary>
+        public void AddStatusEffect(StatusEffect effect)
+        {
+            // Check if same effect type already exists
+            var existing = ActiveStatusEffects.Find(e => e.Type == effect.Type);
+            if (existing != null)
+            {
+                // Replace if new effect is stronger
+                if (effect.Potency >= existing.Potency)
+                {
+                    ActiveStatusEffects.Remove(existing);
+                    ActiveStatusEffects.Add(effect);
+                }
+            }
+            else
+            {
+                ActiveStatusEffects.Add(effect);
+            }
+        }
+
+        /// <summary>
+        /// Process all active status effects (call at end of turn)
+        /// </summary>
+        public void ProcessStatusEffects()
+        {
+            if (ActiveStatusEffects.Count == 0) return;
+
+            Console.WriteLine($"\n{Name}'s status effects:");
+            for (int i = ActiveStatusEffects.Count - 1; i >= 0; i--)
+            {
+                var effect = ActiveStatusEffects[i];
+                effect.ApplyEffect(this);
+
+                if (effect.IsExpired)
+                {
+                    ActiveStatusEffects.RemoveAt(i);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Check if character has a specific status effect
+        /// </summary>
+        public bool HasStatusEffect(StatusEffectType type)
+        {
+            return ActiveStatusEffects.Exists(e => e.Type == type);
+        }
+
+        /// <summary>
+        /// Remove all status effects
+        /// </summary>
+        public void ClearStatusEffects()
+        {
+            ActiveStatusEffects.Clear();
         }
 
         #endregion
