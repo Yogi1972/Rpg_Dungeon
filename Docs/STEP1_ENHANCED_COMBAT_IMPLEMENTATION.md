@@ -251,28 +251,41 @@ Action: _
 
 ## ⏳ Pending Features
 
-### 7. Turn Order System 🔨 TODO
-**File:** `Combat/TurnOrderManager.cs` (NEW)
+### 7. Turn Order System ✅ COMPLETE
+**File:** `Combat/TurnOrderManager.cs` ✅ CREATED  
+**Integration:** `Systems/Combat.cs` ✅ INTEGRATED
 
-**Features to Implement:**
-- [ ] Initiative-based turn calculation using Agility
-- [ ] Turn queue display
-- [ ] Speed-based multiple turns per round
-- [ ] Turn indicator showing current actor
-- [ ] Action economy (Move, Action, Bonus Action)
+**Status:** ✅ COMPLETE - Ready for testing!
 
-**Design:**
+**Features Implemented:**
+- ✅ Initiative-based turn calculation using Agility
+- ✅ Turn queue display
+- ✅ Speed-based turn order
+- ✅ Turn indicator showing current actor
+- ✅ Round tracking
+- ✅ Actor alive status management
+- ✅ Combat continuation checking
+- ✅ Integration into RunEncounterWithTurnOrder ⭐ NEW
+- ✅ Helper methods extracted
+- ✅ Full combat flow working
+
+**Usage:**
 ```csharp
-internal class TurnOrderManager
-{
-    - CalculateInitiative() // Agility + d20 roll
-    - GenerateTurnOrder() // Sort by initiative
-    - GetNextActor() // Who goes next
-    - DisplayTurnOrder() // Show UI
-}
+// New initiative-based combat
+Combat.RunEncounterWithTurnOrder(party, mob);
+
+// Old sequential combat (still available)
+Combat.RunEncounter(party, mob);
 ```
 
-### 7. Combo Attack System 🔨 TODO
+**Next Steps:**
+- [x] Core system complete
+- [x] Integration complete
+- [x] Build successful
+- [ ] Test in gameplay
+- [ ] Balance adjustments
+
+### 8. Combo Attack System 🔨 TODO
 **File:** `Combat/ComboSystem.cs` (NEW)
 
 **Features to Implement:**

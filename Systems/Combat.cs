@@ -1,4 +1,5 @@
 ﻿using Night.Characters;
+using Night.Combat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -660,6 +661,581 @@ namespace Rpg_Dungeon
             StatusEffectManager.ClearAllCombatEffects();
 
             return partyWon;
+        }
+
+        /// <summary>
+        /// Run an encounter with initiative-based turn order system
+        /// </summary>
+        public static bool RunEncounterWithTurnOrder(List<Character> party, Mob mob)
+        {
+            if (party == null || party.Count == 0 || mob == null) return false;
+
+            int mobHp = mob.Health;
+
+            // Calculate party average level
+            int totalLevel = 0;
+            int aliveCount = 0;
+            foreach (var p in party)
+            {
+                if (p.IsAlive)
+                {
+                    totalLevel += p.Level;
+                    aliveCount++;
+                }
+            }
+
+            int partyAvgLevel = aliveCount > 0 ? totalLevel / aliveCount : 1;
+            string mobRank = Playerleveling.GetMobRankTitle(mob.Level, partyAvgLevel);
+
+            // Display combat start banner
+            Console.WriteLine();
+            if (mobRank.Contains("BOSS") || mobRank.Contains("ELITE"))
+            {
+                VisualEffects.WriteDanger($"⚔️  COMBAT! A Level {mob.Level} {mob.Name} {mobRank} appears! (HP {mobHp})\n");
+            }
+            else
+            {
+                VisualEffects.WriteLineColored($"⚔️  Encounter begins! A Level {mob.Level} {mob.Name} {mobRank} appears! (HP {mobHp})", ConsoleColor.Yellow);
+            }
+            Console.WriteLine();
+
+            // Reset threat levels at combat start
+            foreach (var p in party)
+            {
+                p.ThreatLevel = 0;
+                if (p is Warrior warrior)
+                {
+                    warrior.IsTaunting = false;
+                    warrior.TauntDuration = 0;
+                }
+            }
+
+            // Initialize turn order system
+            var turnOrderManager = new TurnOrderManager();
+            var enemies = new List<Mob> { mob };
+
+            // For single player, just use first character
+            var player = party.FirstOrDefault(p => p.IsAlive);
+            if (player == null) return false;
+
+            turnOrderManager.GenerateTurnOrder(player, enemies);
+
+            // Display initiative rolls
+            Console.WriteLine("🎲 Initiative Rolls:");
+            foreach (var p in party.Where(x => x.IsAlive))
+            {
+                Console.WriteLine($"  {p.Name}: Agility {p.Agility} → Initiative calculated");
+            }
+            Console.WriteLine($"  {mob.Name}: Level {mob.Level} → Initiative calculated");
+            Console.WriteLine();
+
+            // Display turn order
+            turnOrderManager.DisplayTurnOrder();
+
+            // Main combat loop with turn order
+            while (turnOrderManager.ShouldContinueCombat() && mobHp > 0)
+            {
+                var actor = turnOrderManager.GetNextActor();
+
+                if (actor.IsPlayer && actor.Character != null)
+                {
+                    // Player turn
+                    var member = actor.Character;
+
+                    if (!member.IsAlive)
+                    {
+                        turnOrderManager.AdvanceTurn();
+                        continue;
+                    }
+
+                    // Process status effects at start of turn
+                    StatusEffectManager.ProcessEffects(member);
+
+                    if (member.Abilities != null && member.Abilities.Count > 0)
+                    {
+                        member.ReduceAbilityCooldowns();
+                    }
+
+                    if (member.ActiveStatusEffects != null && member.ActiveStatusEffects.Count > 0)
+                    {
+                        member.ProcessStatusEffects();
+                    }
+
+                    // Check if stunned
+                    if (StatusEffectManager.IsStunned(member) || member.HasStatusEffect(StatusEffectType.Stunned))
+                    {
+                        Console.WriteLine($"\n💫 {member.Name} is stunned and skips this turn!");
+                        turnOrderManager.AdvanceTurn();
+                        continue;
+                    }
+
+                    // Display turn header
+                    Console.WriteLine($"\n╔═══════════════════════════════════════════════════════════════════╗");
+                    Console.WriteLine($"║  {member.Name}'s Turn (Lv {member.Level}) - Round {turnOrderManager.GetRoundNumber()}");
+                    Console.WriteLine($"╚═══════════════════════════════════════════════════════════════════╝");
+
+                    // Display stats
+                    Console.Write($"💚 HP: {member.Health}/{member.MaxHealth}");
+                    if (member is Warrior || member is Rogue)
+                        Console.Write($" | ⚡ Stamina: {member.Stamina}/{member.MaxStamina}");
+                    else if (member is Mage || member is Priest)
+                        Console.Write($" | 🔮 Mana: {member.Mana}/{member.MaxMana}");
+
+                    Console.Write($" | 🎯 Threat: {member.ThreatLevel}");
+                    if (member is Warrior w && w.IsTaunting)
+                    {
+                        Console.Write($" | 🛡️ [TAUNTING:{w.TauntDuration}]");
+                    }
+                    Console.WriteLine();
+
+                    // Display stance and status
+                    Console.Write($"Stance: {CombatStanceModifiers.GetStanceIcon(member.CurrentStance)} {member.CurrentStance}");
+                    if (member.ActiveStatusEffects.Any())
+                    {
+                        Console.Write(" | Status: ");
+                        foreach (var effect in member.ActiveStatusEffects)
+                        {
+                            Console.Write($"{effect.GetIcon()}{effect.Type}({effect.Duration}) ");
+                        }
+                    }
+                    Console.WriteLine();
+
+                    // Display enemy status
+                    Console.WriteLine($"\n🎯 Enemy: {mob.Name} (Lv {mob.Level}) | HP: {mobHp}/{mob.Health}");
+
+                    // Display abilities
+                    if (member.Abilities != null && member.Abilities.Count > 0)
+                    {
+                        Console.WriteLine("\n⚔️  ABILITIES:");
+                        DisplayAbilities(member);
+                    }
+
+                    // Display actions
+                    Console.WriteLine("\n📋 ACTIONS:");
+                    Console.Write($"1. ⚔️  Attack ");
+                    Console.Write($"\n2. ✨ Special (Legacy) ");
+
+                    if (member is Warrior warrior)
+                    {
+                        Console.Write($"\n3. 🛡️  Taunt (Draw aggro) ");
+                        Console.Write($"\n4. 🔄 Change Stance ");
+                        Console.Write($"\n5. 💼 Use Item ");
+                        Console.Write($"\n6. ⏭️  Pass ");
+                    }
+                    else
+                    {
+                        Console.Write($"\n3. 🔄 Change Stance ");
+                        Console.Write($"\n4. 💼 Use Item ");
+                        Console.Write($"\n5. ⏭️  Pass ");
+                    }
+
+                    if (member.Abilities != null && member.Abilities.Count > 0)
+                    {
+                        Console.Write($"\n\n💫 Quick Abilities: A1-A{member.Abilities.Count}");
+                    }
+
+                    Console.Write("\n\nAction: ");
+                    string act = Console.ReadLine()?.Trim().ToUpper() ?? string.Empty;
+
+                    // Handle ability quick-select
+                    if (act.StartsWith("A") && act.Length >= 2 && member.Abilities != null && member.Abilities.Count > 0)
+                    {
+                        if (int.TryParse(act.Substring(1), out int abilityIndex) && abilityIndex >= 1 && abilityIndex <= member.Abilities.Count)
+                        {
+                            var ability = member.Abilities[abilityIndex - 1];
+                            UseAbilityInCombat(member, ability, mob, ref mobHp, party);
+                            SpecialUsedLastTurn[member.Name] = false;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid ability selection!");
+                        }
+                    }
+                    else if (act == "1")
+                    {
+                        // Attack
+                        SpecialUsedLastTurn[member.Name] = false;
+                        PerformBasicAttack(member, mob, ref mobHp);
+                    }
+                    else if (act == "2")
+                    {
+                        UseSpecialAgainstMob(member, mob, ref mobHp, party);
+                    }
+                    else if (member is Warrior && act == "3")
+                    {
+                        SpecialUsedLastTurn[member.Name] = false;
+                        ((Warrior)member).Taunt();
+                    }
+                    else if (member is Warrior && act == "4")
+                    {
+                        ChangeStanceMenu(member);
+                    }
+                    else if (member is Warrior && act == "5")
+                    {
+                        SpecialUsedLastTurn[member.Name] = false;
+                        UseItemDuringCombat(member, party, mob, ref mobHp);
+                    }
+                    else if (!(member is Warrior) && act == "3")
+                    {
+                        ChangeStanceMenu(member);
+                    }
+                    else if (!(member is Warrior) && act == "4")
+                    {
+                        SpecialUsedLastTurn[member.Name] = false;
+                        UseItemDuringCombat(member, party, mob, ref mobHp);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{member.Name} passes.");
+                    }
+
+                    // Update actor status
+                    turnOrderManager.UpdateActorStatus(true, member.Name, member.IsAlive);
+                }
+                else if (!actor.IsPlayer && actor.Mob != null)
+                {
+                    // Mob turn
+                    if (mobHp <= 0)
+                    {
+                        turnOrderManager.UpdateActorStatus(false, actor.Mob.Name, false);
+                        turnOrderManager.AdvanceTurn();
+                        continue;
+                    }
+
+                    Console.WriteLine($"\n╔═══════════════════════════════════════════╗");
+                    Console.WriteLine($"║  {actor.Mob.Name}'s Turn - Round {turnOrderManager.GetRoundNumber()}");
+                    Console.WriteLine($"╚═══════════════════════════════════════════╝");
+
+                    // Decrement taunt duration for warriors
+                    foreach (var member in party.Where(p => p is Warrior))
+                    {
+                        ((Warrior)member).DecrementTaunt();
+                    }
+
+                    // Find target based on threat
+                    var alive = party.Where(p => p.IsAlive).ToList();
+                    if (alive.Count == 0) break;
+
+                    Character target;
+                    var taunters = alive.Where(p => p is Warrior warrior && warrior.IsTaunting).ToList();
+                    if (taunters.Any())
+                    {
+                        target = taunters.OrderByDescending(p => p.ThreatLevel).First();
+                        Console.WriteLine($"🎯 {target.Name}'s taunt forces {actor.Mob.Name} to attack!");
+                    }
+                    else
+                    {
+                        target = alive.OrderByDescending(p => p.ThreatLevel).First();
+                        if (target.ThreatLevel > 0)
+                        {
+                            Console.WriteLine($"🎯 {actor.Mob.Name} targets {target.Name} (Threat: {target.ThreatLevel})!");
+                        }
+                    }
+
+                    Attack(actor.Mob, target);
+
+                    // Update actor status
+                    turnOrderManager.UpdateActorStatus(false, actor.Mob.Name, mobHp > 0);
+                }
+
+                // Check if combat should end
+                if (mobHp <= 0)
+                {
+                    turnOrderManager.UpdateActorStatus(false, mob.Name, false);
+                    break;
+                }
+
+                // Advance to next turn
+                turnOrderManager.AdvanceTurn();
+
+                // Optional: Show turn order every few turns
+                if (turnOrderManager.GetRoundNumber() > 1 && actor.IsPlayer)
+                {
+                    Console.WriteLine("\n[Press Enter to continue]");
+                    Console.ReadLine();
+                }
+            }
+
+            // Combat ended - determine winner and handle rewards
+            bool partyWon = mobHp <= 0;
+
+            if (partyWon)
+            {
+                Console.WriteLine();
+                VisualEffects.ShowVictoryBanner();
+                VisualEffects.WriteSuccess($"💀 {mob.Name} was {VisualEffects.GetRandomKillMessage()}\n");
+
+                var loot = mob.DropLoot(_rng);
+
+                // Check for legendary drop
+                var leader = party.FirstOrDefault(p => p.IsAlive);
+                if (leader != null)
+                {
+                    var legendaryItem = LegendaryItemSystem.TryGenerateLegendaryDrop(leader.Level);
+                    if (legendaryItem != null)
+                    {
+                        LegendaryItemSystem.AnnounceItemFound(legendaryItem);
+                        leader.Inventory.AddItem(legendaryItem);
+                        VisualEffects.WriteSuccess($"✨ {leader.Name} received: {legendaryItem.Name}!\n");
+                    }
+                }
+
+                // Award experience
+                int xp = Playerleveling.CalculateXPReward(mob, party.Count);
+
+                foreach (var member in party.Where(p => p.IsAlive))
+                {
+                    int memberXP = xp;
+
+                    if (member.Pet != null && member.Pet.Ability == PetAbility.ExperienceBoost)
+                    {
+                        memberXP = (int)(memberXP * 1.10);
+                    }
+
+                    if (member.SkillTree != null)
+                    {
+                        double xpBonusPercent = member.SkillTree.GetTotalXPBonusPercent();
+                        if (xpBonusPercent > 0)
+                        {
+                            memberXP = (int)(memberXP * (1.0 + xpBonusPercent));
+                        }
+                    }
+
+                    Console.WriteLine($"{member.Name} gains {memberXP} XP!");
+                    member.GainExperience(memberXP);
+
+                    VisualEffects.DrawProgressBarLine(
+                        member.Experience,
+                        member.ExperienceToNextLevel,
+                        20,
+                        $"  {member.Name}'s XP"
+                    );
+
+                    if (member.Pet != null)
+                    {
+                        member.Pet.GainExperience(xp / 4);
+                    }
+
+                    // Pet post-combat effects
+                    if (member.Pet != null)
+                    {
+                        if (member.Pet.Ability == PetAbility.HealthRegen)
+                        {
+                            int healAmount = (int)(member.MaxHealth * 0.05);
+                            member.Heal(healAmount);
+                            Console.WriteLine($"🐾 {member.Pet.Name} helps {member.Name} recover {healAmount} HP!");
+                        }
+                        else if (member.Pet.Ability == PetAbility.ManaRegen)
+                        {
+                            if (member is Warrior || member is Rogue)
+                            {
+                                int staminaAmount = (int)(member.MaxStamina * 0.05);
+                                member.RestoreStamina(staminaAmount);
+                                Console.WriteLine($"🐾 {member.Pet.Name} helps {member.Name} recover {staminaAmount} Stamina!");
+                            }
+                            else if (member is Mage || member is Priest)
+                            {
+                                int manaAmount = (int)(member.MaxMana * 0.05);
+                                member.RestoreMana(manaAmount);
+                                Console.WriteLine($"🐾 {member.Pet.Name} helps {member.Name} recover {manaAmount} Mana!");
+                            }
+                        }
+                    }
+                }
+
+                // Distribute gold
+                if (loot.Gold > 0)
+                {
+                    int totalGoldAmount = loot.Gold;
+                    var bonusReceiver = party.FirstOrDefault(p => p.IsAlive) ?? party[0];
+
+                    if (bonusReceiver.Pet != null && bonusReceiver.Pet.Ability == PetAbility.LootBonus)
+                    {
+                        totalGoldAmount = (int)(totalGoldAmount * 1.20);
+                    }
+
+                    if (bonusReceiver.SkillTree != null)
+                    {
+                        double goldBonusPercent = bonusReceiver.SkillTree.GetTotalGoldBonusPercent();
+                        if (goldBonusPercent > 0)
+                        {
+                            totalGoldAmount = (int)(totalGoldAmount * (1.0 + goldBonusPercent));
+                        }
+                    }
+
+                    int goldPerMember = totalGoldAmount / party.Count;
+                    int remainder = totalGoldAmount % party.Count;
+
+                    foreach (var member in party)
+                    {
+                        int memberGold = goldPerMember;
+                        if (member == party[0] && remainder > 0)
+                        {
+                            memberGold += remainder;
+                        }
+                        member.Inventory.AddGold(memberGold);
+                    }
+
+                    VisualEffects.WriteSuccess($"💰 The party receives {totalGoldAmount} gold ({goldPerMember} per member)!\n");
+                }
+
+                // Distribute items
+                int itemIndex = 0;
+                foreach (var item in loot.Items)
+                {
+                    bool itemAdded = false;
+                    for (int attempt = 0; attempt < party.Count && !itemAdded; attempt++)
+                    {
+                        var receiver = party[(itemIndex + attempt) % party.Count];
+                        if (receiver.Inventory.AddItem(item))
+                        {
+                            VisualEffects.WriteSuccess($"🎁 {receiver.Name} finds {item.Name}!\n");
+                            itemAdded = true;
+                        }
+                    }
+
+                    if (!itemAdded)
+                    {
+                        VisualEffects.WriteInfo($"❌ No space to pick up {item.Name}; it was left behind.\n");
+                    }
+
+                    itemIndex++;
+                }
+            }
+            else
+            {
+                VisualEffects.ShowDefeatBanner();
+                VisualEffects.WriteDanger("💀 The party was defeated...\n");
+            }
+
+            // Clear all status effects after combat
+            StatusEffectManager.ClearAllCombatEffects();
+
+            return partyWon;
+        }
+
+        /// <summary>
+        /// Perform a basic attack (extracted for reuse)
+        /// </summary>
+        private static void PerformBasicAttack(Character member, Mob mob, ref int mobHp)
+        {
+            int roll = RollD20();
+            int attackStat = GetAttackStat(member);
+            int targetDefense = 10 + (mob.Agility / 2);
+
+            Console.Write($"{member.Name} rolls d20: {roll} (+{attackStat}) against defense {targetDefense}");
+
+            if (roll == 1)
+            {
+                VisualEffects.WriteDanger($"\n❌ {member.Name} critically misses! {VisualEffects.GetRandomMissMessage()}\n");
+                return;
+            }
+
+            int total = roll + attackStat;
+            bool crit = roll == 20;
+
+            // Check for additional crit chance from skills
+            if (!crit && member.SkillTree != null)
+            {
+                int critChance = member.SkillTree.GetTotalCritChanceBonus();
+                if (critChance > 0 && _rng.Next(1, 101) <= critChance)
+                {
+                    crit = true;
+                    VisualEffects.WriteColored(" [SKILL CRIT!]", ConsoleColor.Yellow);
+                }
+            }
+
+            if (crit || total > targetDefense)
+            {
+                if (crit)
+                {
+                    VisualEffects.ShowCriticalHitEffect();
+                    Console.WriteLine($" {VisualEffects.GetRandomCritMessage()}");
+                }
+
+                int baseDamage = attackStat;
+                if (member is Mage) baseDamage = member.GetTotalIntelligence();
+                else if (member is Rogue) baseDamage = member.GetTotalAgility();
+                else if (member is Priest) baseDamage = Math.Max(1, member.GetTotalIntelligence() / 2);
+                else if (member is Warrior) baseDamage = member.GetTotalStrength();
+
+                int dmg = crit ? baseDamage * 2 : baseDamage;
+
+                // Apply combat stance damage modifier
+                double stanceMultiplier = CombatStanceModifiers.GetDamageMultiplier(member.CurrentStance);
+                if (stanceMultiplier != 1.0)
+                {
+                    int stanceDmg = (int)(dmg * stanceMultiplier);
+                    if (stanceDmg != dmg)
+                    {
+                        Console.Write($" [{CombatStanceModifiers.GetStanceIcon(member.CurrentStance)} Stance: {dmg} → {stanceDmg}]");
+                        dmg = stanceDmg;
+                    }
+                }
+
+                // Apply status effect damage modifiers
+                double statusMultiplier = StatusEffectManager.GetDamageModifier(member);
+                if (statusMultiplier != 1.0)
+                {
+                    int statusDmg = (int)(dmg * statusMultiplier);
+                    if (statusDmg != dmg)
+                    {
+                        Console.Write($" [Weakened: {dmg} → {statusDmg}]");
+                        dmg = statusDmg;
+                    }
+                }
+
+                // Apply skill damage bonus
+                if (member.SkillTree != null)
+                {
+                    dmg += member.SkillTree.GetTotalDamageBonus();
+                }
+
+                // Apply pet damage boost
+                if (member.Pet != null && member.Pet.Ability == PetAbility.DamageBoost)
+                {
+                    dmg = (int)(dmg * 1.05);
+                }
+
+                // Apply life steal
+                if (member.SkillTree != null)
+                {
+                    double lifeStealPercent = member.SkillTree.GetTotalLifeStealPercent();
+                    if (lifeStealPercent > 0)
+                    {
+                        int healAmount = (int)(dmg * lifeStealPercent);
+                        if (healAmount > 0)
+                        {
+                            member.Heal(healAmount);
+                            Console.Write($" [Life Steal: +{healAmount} HP]");
+                        }
+                    }
+                }
+
+                // Apply mob armor rating reduction
+                int finalDamage = dmg;
+                if (mob.ArmorRating > 0)
+                {
+                    finalDamage = Math.Max(1, dmg - mob.ArmorRating);
+                    if (finalDamage < dmg)
+                    {
+                        Console.Write($" [Mob AR: {mob.ArmorRating}, {dmg} → {finalDamage}]");
+                    }
+                }
+
+                mobHp = Math.Max(0, mobHp - finalDamage);
+                VisualEffects.WriteDamage($"{member.Name} hits {mob.Name} for {finalDamage} damage! ");
+                VisualEffects.WriteInfo($"(mob HP: {mobHp}/{mob.Health})\n");
+
+                // Generate threat
+                int threat = finalDamage;
+                if (member is Warrior) threat = (int)(threat * 1.5);
+                member.ThreatLevel += threat;
+            }
+            else
+            {
+                VisualEffects.WriteInfo($"{member.Name} misses {mob.Name}. {VisualEffects.GetRandomMissMessage()}\n");
+            }
         }
 
         #endregion
