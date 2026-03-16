@@ -28,6 +28,18 @@ bld/
 [Ll]ogs/
 publish/
 
+# Ignore zip release artifacts and patches
+*.zip
+Rpg_Dungeon_v3*.zip
+RPG_Dungeon_v3*.zip
+patches/
+
+# Don't accidentally commit packaged builds
+bin/
+obj/
+**/bin/
+**/obj/
+
 # Visual Studio cache/options directory
 .vs/
 
