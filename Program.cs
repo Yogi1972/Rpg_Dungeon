@@ -42,6 +42,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine("║                    CRITICAL ERROR                                ║");
                 Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
                 Console.WriteLine($"\n❌ An unexpected error occurred: {ex.Message}");
+
                 Console.WriteLine($"\n📋 Error Type: {ex.GetType().Name}");
 
                 string logFilePath = ErrorLogger.LogCriticalError(ex, "Unhandled exception in Main()");
