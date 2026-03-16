@@ -10,7 +10,7 @@ namespace Rpg_Dungeon
     /// Main Combat coordinator - delegates to specialized handlers
     /// Refactored for better maintainability and separation of concerns
     /// </summary>
-    internal static class Combat
+    internal static class CombatSystem
     {
         #region Fields
 

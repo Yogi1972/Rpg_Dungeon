@@ -342,7 +342,7 @@ namespace Rpg_Dungeon
                     int currentHp = mobHealthTracker[targetMob];
 
                     // Use existing combat system for single mob
-                    bool mobDefeated = Combat.RunEncounter(new List<Character> { member }, targetMob);
+                    bool mobDefeated = CombatSystem.RunEncounter(new List<Character> { member }, targetMob);
 
                     // Update HP tracker (estimate based on defeat or assume some damage)
                     if (mobDefeated)
@@ -372,7 +372,7 @@ namespace Rpg_Dungeon
                 foreach (var enemy in Enemies.Where(e => mobHealthTracker[e] > 0))
                 {
                     var target = aliveParty[_rng.Next(aliveParty.Count)];
-                    Combat.Attack(enemy, target);
+                    CombatSystem.Attack(enemy, target);
                     Console.WriteLine();
 
                     if (!target.IsAlive)

@@ -242,7 +242,7 @@ namespace Rpg_Dungeon
             List<Character> party, Dictionary<string, bool> specialUsedLastTurn)
         {
             Console.Write($"{member.Name} uses their special ability!");
-            int roll = Combat.RollD20();
+            int roll = CombatSystem.RollD20();
 
             // Priest special acts as a heal on allies
             if (member is Priest priest)
