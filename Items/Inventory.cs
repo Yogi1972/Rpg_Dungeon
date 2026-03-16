@@ -26,6 +26,21 @@ namespace Night.Items
         public Equipment? EquippedRing1 { get; private set; }
         public Equipment? EquippedRing2 { get; private set; }
         public Equipment? EquippedOffHand { get; private set; }
+        public Pouch? EquippedBeltPouch1 { get; private set; }
+        public Pouch? EquippedBeltPouch2 { get; private set; }
+        public Pouch? EquippedBeltPouch3 { get; private set; }
+
+        public int TotalQuickSlots
+        {
+            get
+            {
+                int total = 0;
+                if (EquippedBeltPouch1 != null) total += EquippedBeltPouch1.QuickSlots;
+                if (EquippedBeltPouch2 != null) total += EquippedBeltPouch2.QuickSlots;
+                if (EquippedBeltPouch3 != null) total += EquippedBeltPouch3.QuickSlots;
+                return total;
+            }
+        }
 
         public IReadOnlyList<Item?> Slots => _slots.AsReadOnly();
 
@@ -92,6 +107,83 @@ namespace Night.Items
             if (backpack.Slots <= 0) return false;
             ExtraSlots = backpack.Slots;
             EnsureCapacity(TotalSlots);
+            return true;
+        }
+
+        #endregion
+
+        #region Pouch Management
+
+        public bool EquipPouch(Pouch pouch, EquipmentSlot slot)
+        {
+            if (pouch == null) return false;
+            if (slot != EquipmentSlot.BeltPouch1 && slot != EquipmentSlot.BeltPouch2 && slot != EquipmentSlot.BeltPouch3)
+                return false;
+
+            Pouch? currentPouch = slot switch
+            {
+                EquipmentSlot.BeltPouch1 => EquippedBeltPouch1,
+                EquipmentSlot.BeltPouch2 => EquippedBeltPouch2,
+                EquipmentSlot.BeltPouch3 => EquippedBeltPouch3,
+                _ => null
+            };
+
+            if (currentPouch != null)
+            {
+                if (!AddItem(currentPouch))
+                {
+                    Console.WriteLine("Inventory full! Cannot unequip current pouch.");
+                    return false;
+                }
+            }
+
+            switch (slot)
+            {
+                case EquipmentSlot.BeltPouch1:
+                    EquippedBeltPouch1 = pouch;
+                    break;
+                case EquipmentSlot.BeltPouch2:
+                    EquippedBeltPouch2 = pouch;
+                    break;
+                case EquipmentSlot.BeltPouch3:
+                    EquippedBeltPouch3 = pouch;
+                    break;
+            }
+
+            return true;
+        }
+
+        public bool UnequipPouch(EquipmentSlot slot)
+        {
+            Pouch? toUnequip = slot switch
+            {
+                EquipmentSlot.BeltPouch1 => EquippedBeltPouch1,
+                EquipmentSlot.BeltPouch2 => EquippedBeltPouch2,
+                EquipmentSlot.BeltPouch3 => EquippedBeltPouch3,
+                _ => null
+            };
+
+            if (toUnequip == null) return false;
+
+            if (!AddItem(toUnequip))
+            {
+                Console.WriteLine("Inventory full! Cannot unequip pouch.");
+                return false;
+            }
+
+            switch (slot)
+            {
+                case EquipmentSlot.BeltPouch1:
+                    EquippedBeltPouch1 = null;
+                    break;
+                case EquipmentSlot.BeltPouch2:
+                    EquippedBeltPouch2 = null;
+                    break;
+                case EquipmentSlot.BeltPouch3:
+                    EquippedBeltPouch3 = null;
+                    break;
+            }
+
             return true;
         }
 

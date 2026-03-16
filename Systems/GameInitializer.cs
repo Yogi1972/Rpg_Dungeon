@@ -1,4 +1,5 @@
 using Night.Characters;
+using Rpg_Dungeon.Systems;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -159,6 +160,12 @@ namespace Rpg_Dungeon
             ProfessionManager.SelectProfessions(character);
 
             character.Inventory.AddGold(50);
+
+            Console.WriteLine("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine("  📦 STARTING EQUIPMENT");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            StartingEquipmentGenerator.GiveStartingEquipment(character);
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
             return character;
         }
