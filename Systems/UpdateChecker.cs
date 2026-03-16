@@ -49,8 +49,9 @@ namespace Rpg_Dungeon.Systems
             try
             {
                 _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Rpg-Dungeon-Crawler/2.0");
-                _httpClient.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+                _httpClient.DefaultRequestHeaders.Add("User-Agent", "Rpg-Dungeon-Crawler/3.0");
+                _httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+                _httpClient.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
 
                 var response = await _httpClient.GetStringAsync(VersionControl.GitHubVersionCheckUrl);
                 var githubRelease = JsonSerializer.Deserialize<GitHubRelease>(response, new JsonSerializerOptions
