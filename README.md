@@ -49,47 +49,6 @@ Choose from 4 main classes, each with 3 advanced specializations:
 
 ---
 
-## 💻 For Developers
-
-### Requirements
-- Visual Studio 2026 (or Visual Studio 2022 with .NET 10 SDK)
-- .NET 10.0 SDK
-- Windows 10/11 (64-bit)
-
-### Building from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/Yogi1972/Rpg_Dungeon.git
-cd Rpg_Dungeon
-
-# Build and run
-dotnet build
-dotnet run --project Night.csproj
-
-# Or open Night.csproj in Visual Studio
-```
-
-### Project Structure
-
-```
-Rpg_Dungeon/
-├── Characters/        # Character classes and progression
-├── Combat/           # Combat system and mob generation
-├── World/            # World generation and dungeons
-├── Systems/          # Core game systems
-├── Docs/             # Documentation
-└── Night.csproj      # Main project file
-```
-
-### Publishing Standalone Build
-
-```bash
-dotnet publish Night.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish/v3.0.1
-```
-
----
-
 ## 📚 Documentation
 
 - [Loot System Enhancement](Docs/LOOT_SYSTEM_ENHANCEMENT.md)
