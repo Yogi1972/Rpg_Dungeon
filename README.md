@@ -3,16 +3,16 @@
 A text-based RPG dungeon crawler adventure game built with .NET 10.0.
 
 [![.NET Version](https://img.shields.io/badge/.NET-10.0-blue)](https://dotnet.microsoft.com/)
-[![Version](https://img.shields.io/badge/version-3.0.0-green)](https://github.com/Yogi1972/Rpg_Dungeon/releases)
+[![Version](https://img.shields.io/badge/version-3.0.1-green)](https://github.com/Yogi1972/Rpg_Dungeon/releases)
 [![License](https://img.shields.io/badge/license-Open%20Source-orange)](https://github.com/Yogi1972/Rpg_Dungeon)
 
 ## 🎮 For Players - Quick Start
 
 ### Download & Play (No coding required!)
 
-**👉 [Download Latest Release (v3.0.0)](https://github.com/Yogi1972/Rpg_Dungeon/releases/latest)**
+**👉 [Download Latest Release (v3.0.1)](https://github.com/Yogi1972/Rpg_Dungeon/releases/latest)**
 
-1. Download `RPG_Dungeon_v3.0.0_win-x64.zip`
+1. Download `Rpg_Dungeon_v3.0.1_win-x64.zip`
 2. Extract the ZIP file to a folder
 3. Read `WINDOWS_DEFENDER_HELP.md` (Important!)
 4. Run `ConsoleApplication.exe`
@@ -85,7 +85,7 @@ Rpg_Dungeon/
 ### Publishing Standalone Build
 
 ```bash
-dotnet publish Night.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish/v3.0.0
+dotnet publish Night.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish/v3.0.1
 ```
 
 ---
