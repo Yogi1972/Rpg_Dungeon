@@ -13,18 +13,21 @@ namespace Rpg_Dungeon
 
         private readonly List<Location> _allLocations;
         private readonly GameState _gameState;
+        private readonly WorldGenerator _worldGenerator;
 
         #endregion
 
         #region Constructor
 
-        public WorldMap(Weather weather, TimeOfDay timeTracker)
+        public WorldMap(Weather weather, TimeOfDay timeTracker, int? worldSeed = null)
         {
+            _worldGenerator = new WorldGenerator(worldSeed);
             _allLocations = new List<Location>();
             _gameState = new GameState
             {
                 Weather = weather,
-                TimeTracker = timeTracker
+                TimeTracker = timeTracker,
+                WorldSeed = _worldGenerator.Seed
             };
             InitializeWorld();
         }
@@ -35,191 +38,25 @@ namespace Rpg_Dungeon
 
         private void InitializeWorld()
         {
-            InitializeMajorTowns();
-            InitializeSettlements();
-            InitializeCamps();
-            SetupDistances();
-        }
+            Console.WriteLine($"\n🌍 Generating world with seed: {WorldGenerator.SeedToString(_worldGenerator.Seed)}");
 
-        private void InitializeMajorTowns()
-        {
-            // Town 1: Havenbrook (Starting Town - Trading Hub)
-            var havenbrook = new MajorTown(
-                "Havenbrook",
-                "A bustling trade city at the crossroads of major routes. The starting point for many adventurers.",
-                "Trade and Commerce",
-                1
-            );
-            havenbrook.IsDiscovered = true; // Starting location
-            _allLocations.Add(havenbrook);
+            var majorTowns = _worldGenerator.GenerateMajorTowns();
+            _allLocations.AddRange(majorTowns);
 
-            // Town 2: Ironforge Citadel (Mountain Town - Crafting)
-            var ironforge = new MajorTown(
-                "Ironforge Citadel",
-                "A fortress city built into the mountain, renowned for its master craftsmen and legendary smiths.",
-                "Blacksmithing and Armor Crafting",
-                10
-            );
-            _allLocations.Add(ironforge);
-
-            // Town 3: Mysthaven (Coastal Town - Magic)
-            var mysthaven = new MajorTown(
-                "Mysthaven",
-                "A mysterious port city shrouded in mist, home to powerful mages and arcane academies.",
-                "Magic and Enchanting",
-                15
-            );
-            _allLocations.Add(mysthaven);
-
-            // Town 4: Sunspire (Desert City - Rare Goods)
-            var sunspire = new MajorTown(
-                "Sunspire",
-                "A golden city in the desert, famous for exotic goods and ancient treasures from tomb raiders.",
-                "Exotic Goods and Artifacts",
-                20
-            );
-            _allLocations.Add(sunspire);
-
-            // Town 5: Shadowkeep (Dark City - Elite Services)
-            var shadowkeep = new MajorTown(
-                "Shadowkeep",
-                "A dark gothic city for experienced adventurers, offering elite training and rare dark artifacts.",
-                "Elite Training and Dark Arts",
-                25
-            );
-            _allLocations.Add(shadowkeep);
-
-            // Town 6: Crystalshore (Crystal Coast - Jewelry & Gems)
-            var crystalshore = new MajorTown(
-                "Crystalshore",
-                "A magnificent coastal city built with crystalline architecture, famous for gem cutting and jewelry crafting.",
-                "Jewelry and Gemcraft",
-                12
-            );
-            _allLocations.Add(crystalshore);
-
-            // Town 7: Emberpeak (Volcanic City - Alchemy & Fire Magic)
-            var emberpeak = new MajorTown(
-                "Emberpeak",
-                "A city carved into an ancient volcano, where alchemists harness geothermal power for potent creations.",
-                "Alchemy and Fire Crafts",
-                18
-            );
-            _allLocations.Add(emberpeak);
-
-            // Town 8: Stormwatch (Sky City - Navigation & Weather Magic)
-            var stormwatch = new MajorTown(
-                "Stormwatch",
-                "A fortified city atop towering cliffs, home to storm mages and master navigators who chart the skies.",
-                "Navigation and Storm Magic",
-                22
-            );
-            _allLocations.Add(stormwatch);
-        }
-
-        private void InitializeSettlements()
-        {
-            // Settlements with varying services (all have inns)
-            var settlements = new[]
-            {
-                new Settlement("Willowdale", "A peaceful farming village surrounded by wheat fields.", 1, true, true),
-                new Settlement("Crossroads Keep", "A fortified waystation where three roads meet.", 3, true, true),
-                new Settlement("Pinewood", "A logging community deep in the forest.", 5, true, false),
-                new Settlement("Riverside", "A quiet fishing village by the great river.", 5, true, true),
-                new Settlement("Stonebridge", "A settlement built around an ancient stone bridge.", 8, false, true),
-                new Settlement("Frosthollow", "A cold mountain settlement of hardy folk.", 10, true, false),
-                new Settlement("Oasis Rest", "A desert settlement around a precious water source.", 12, true, true),
-                new Settlement("Moonwell", "A mystical settlement near a magical spring.", 15, false, false),
-                new Settlement("Thornwall", "A walled settlement on the dangerous frontier.", 18, true, true),
-                new Settlement("Ghostlight", "An eerie settlement near the haunted lands.", 20, false, true),
-                new Settlement("Silvermist", "A foggy coastal village where sailors share tales of the deep.", 13, true, true),
-                new Settlement("Copperhill", "A mining settlement extracting precious copper from the hills.", 16, true, false),
-                new Settlement("Ravencrest", "A fortified settlement on a rocky outcrop, watching for dangers.", 24, false, true)
-            };
-
+            var settlements = _worldGenerator.GenerateSettlements();
             _allLocations.AddRange(settlements);
-        }
 
-        private void InitializeCamps()
-        {
-            // 23 Random camps across the world
-            var camps = new[]
-            {
-                // Roadside Camps (5)
-                new Camp("Traveler's Rest", "A common stop for merchants and adventurers.", CampType.Roadside),
-                new Camp("Wagon Circle", "A defensive camp formation used by caravans.", CampType.Roadside),
-                new Camp("Milestone Camp", "A camp marked by an ancient stone milestone.", CampType.Roadside),
-                new Camp("Crossroads Camp", "A busy camp where multiple paths converge.", CampType.Roadside),
-                new Camp("Guard Post", "An abandoned guard post turned makeshift camp.", CampType.Roadside),
-
-                // Forest Camps (4)
-                new Camp("Hunter's Clearing", "A camp used by local hunters.", CampType.Forest),
-                new Camp("Woodcutter's Site", "A clearing with stumps and a fire pit.", CampType.Forest),
-                new Camp("Druid Circle", "A sacred grove with ancient standing stones.", CampType.Forest),
-                new Camp("Ranger Outpost", "A hidden camp used by forest rangers.", CampType.Forest),
-
-                // Mountain Camps (4)
-                new Camp("Eagle's Nest", "A high altitude camp with a commanding view.", CampType.Mountain),
-                new Camp("Cave Shelter", "A natural cave offering protection from elements.", CampType.Mountain),
-                new Camp("Mountain Pass Camp", "A camp at the highest point of the pass.", CampType.Mountain),
-                new Camp("Windswept Ridge", "A camp on a windy mountain ridge with spectacular views.", CampType.Mountain),
-
-                // Desert Camps (3)
-                new Camp("Dune Hollow", "A depression in the sand providing shelter from wind.", CampType.Desert),
-                new Camp("Nomad Circle", "A traditional circular camp of desert nomads.", CampType.Desert),
-                new Camp("Rock Shelter", "A camp sheltered by large desert rocks.", CampType.Desert),
-
-                // Riverside Camps (4)
-                new Camp("Fisher's Camp", "A camp by the water with drying racks.", CampType.Riverside),
-                new Camp("Ferry Landing", "A camp near an old ferry crossing.", CampType.Riverside),
-                new Camp("Beaver Dam", "A camp near a large beaver dam.", CampType.Riverside),
-                new Camp("Seaside Camp", "A coastal camp with the sound of crashing waves.", CampType.Riverside),
-
-                // Ruins Camps (3)
-                new Camp("Temple Steps", "A camp among crumbling temple ruins.", CampType.Ruins),
-                new Camp("Old Fort", "A camp within the walls of an ancient fort.", CampType.Ruins),
-                new Camp("Merchant's Rest", "A camp in the ruins of an old trading post.", CampType.Ruins)
-            };
-
+            var camps = _worldGenerator.GenerateCamps();
             _allLocations.AddRange(camps);
+
+            var enemyCamps = _worldGenerator.GenerateEnemyCamps();
+            _allLocations.AddRange(enemyCamps);
+
+            _worldGenerator.SetupDistances(_allLocations);
+
+            Console.WriteLine($"✓ World generated: {majorTowns.Count} towns, {settlements.Count} settlements, {camps.Count} camps, {enemyCamps.Count} enemy camps");
         }
 
-        private void SetupDistances()
-        {
-            // Set up distances between major locations
-            // This is a simplified system - in a full implementation, you'd calculate actual distances
-            var rng = new Random(42); // Fixed seed for consistent distances
-
-            foreach (var location in _allLocations)
-            {
-                foreach (var otherLocation in _allLocations)
-                {
-                    if (location != otherLocation && !location.DistancesToOtherLocations.ContainsKey(otherLocation.Name))
-                    {
-                        int distance = CalculateDistance(location, otherLocation, rng);
-                        location.DistancesToOtherLocations[otherLocation.Name] = distance;
-                        otherLocation.DistancesToOtherLocations[location.Name] = distance; // Symmetric
-                    }
-                }
-            }
-        }
-
-        private int CalculateDistance(Location from, Location to, Random rng)
-        {
-            // Base distance depends on location types
-            int baseDistance = (from.Type, to.Type) switch
-            {
-                (LocationCategory.Town, LocationCategory.Town) => rng.Next(50, 100),
-                (LocationCategory.Town, LocationCategory.Settlement) => rng.Next(20, 50),
-                (LocationCategory.Town, LocationCategory.Camp) => rng.Next(10, 30),
-                (LocationCategory.Settlement, LocationCategory.Settlement) => rng.Next(15, 40),
-                (LocationCategory.Settlement, LocationCategory.Camp) => rng.Next(5, 20),
-                (LocationCategory.Camp, LocationCategory.Camp) => rng.Next(3, 15),
-                _ => rng.Next(10, 30)
-            };
-
-            return baseDistance;
-        }
 
         #endregion
 
@@ -248,7 +85,8 @@ namespace Rpg_Dungeon
                 Console.WriteLine("2) Show Major Towns");
                 Console.WriteLine("3) Show Settlements");
                 Console.WriteLine("4) Show Camps");
-                Console.WriteLine("5) Travel to Location");
+                Console.WriteLine("5) Show Enemy Camps ⚔️");
+                Console.WriteLine("6) Travel to Location");
                 Console.WriteLine("0) Close Map");
                 Console.Write("Choice: ");
 
@@ -269,6 +107,9 @@ namespace Rpg_Dungeon
                         ShowLocationsByType(LocationCategory.Camp);
                         break;
                     case "5":
+                        ShowEnemyCamps();
+                        break;
+                    case "6":
                         TravelToLocation(party);
                         break;
                     case "0":
@@ -321,6 +162,38 @@ namespace Rpg_Dungeon
                 foreach (var location in locations)
                 {
                     location.DisplayInfo();
+                }
+            }
+
+            Console.ReadKey();
+        }
+
+        private void ShowEnemyCamps()
+        {
+            Console.Clear();
+            Console.WriteLine("\n╔════════════════════════════════════════════════╗");
+            Console.WriteLine("║            ⚔️ ENEMY CAMPS ⚔️                  ║");
+            Console.WriteLine("╚════════════════════════════════════════════════╝\n");
+
+            var enemyCamps = _allLocations
+                .OfType<EnemyCamp>()
+                .Where(ec => ec.IsDiscovered)
+                .OrderBy(ec => ec.RequiredLevel)
+                .ToList();
+
+            if (enemyCamps.Count == 0)
+            {
+                Console.WriteLine("No enemy camps discovered yet!");
+                Console.WriteLine("\n💡 Explore the world to find hostile camps you can assault.");
+            }
+            else
+            {
+                var cleared = enemyCamps.Count(ec => ec.IsCleared);
+                Console.WriteLine($"Discovered: {enemyCamps.Count} | Cleared: {cleared} | Remaining: {enemyCamps.Count - cleared}\n");
+
+                foreach (var camp in enemyCamps)
+                {
+                    camp.DisplayInfo();
                 }
             }
 

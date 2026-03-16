@@ -93,6 +93,7 @@ namespace Rpg_Dungeon
         public NPCManager? NPCManager { get; set; }
         public MainStoryline? MainStoryline { get; set; }
         public FogOfWarMap? FogOfWarMap { get; set; }
+        public int? WorldSeed { get; set; }
     }
 
     #endregion

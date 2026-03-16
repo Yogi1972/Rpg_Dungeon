@@ -15,12 +15,56 @@ namespace Rpg_Dungeon
             Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
             Console.WriteLine();
 
+            int? worldSeed = PromptForWorldSeed();
+
+            if (worldSeed.HasValue)
+            {
+                Console.WriteLine($"\n🌍 Using world seed: {WorldGenerator.SeedToString(worldSeed.Value)}");
+                Console.WriteLine("💡 You can use this seed to generate the same world again!");
+            }
+
             int partySize = GetPartySize();
             var party = CreateParty(partySize, false);
 
-            Console.WriteLine($"Created {party.Count} characters:\n{string.Join("\n", GetPartyDescriptions(party))}");
+            Console.WriteLine($"\nCreated {party.Count} characters:\n{string.Join("\n", GetPartyDescriptions(party))}");
             Thread.Sleep(2000);
-            GameLoopManager.Run(party, false);
+            GameLoopManager.Run(party, false, worldSeed);
+        }
+
+        private static int? PromptForWorldSeed()
+        {
+            Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
+            Console.WriteLine("║                      WORLD SEED SELECTION                        ║");
+            Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
+            Console.WriteLine();
+            Console.WriteLine("  🎲 World seeds determine the layout of your adventure!");
+            Console.WriteLine("  🗺️  Same seed = Same world (towns, dungeons, camps)");
+            Console.WriteLine("  ✨ Leave blank for a random world");
+            Console.WriteLine();
+            Console.Write("Enter world seed (or press Enter for random): ");
+
+            string? input = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                int randomSeed = (int)(DateTime.Now.Ticks & 0x7FFFFFFF);
+                Console.WriteLine($"\n🎲 Generated random seed: {WorldGenerator.SeedToString(randomSeed)}");
+                return randomSeed;
+            }
+
+            try
+            {
+                int seed = WorldGenerator.StringToSeed(input.Trim());
+                Console.WriteLine($"✓ Seed accepted: {WorldGenerator.SeedToString(seed)}");
+                return seed;
+            }
+            catch
+            {
+                Console.WriteLine("⚠️  Invalid seed format. Using random seed instead.");
+                int randomSeed = (int)(DateTime.Now.Ticks & 0x7FFFFFFF);
+                Console.WriteLine($"🎲 Generated random seed: {WorldGenerator.SeedToString(randomSeed)}");
+                return randomSeed;
+            }
         }
 
         public static void StartMultiplayerGame()
@@ -33,6 +77,13 @@ namespace Rpg_Dungeon
             Console.WriteLine("  🎮 Multiplayer allows multiple players to control party members!");
             Console.WriteLine("  📝 Each player creates their own character for the adventure.");
             Console.WriteLine();
+
+            int? worldSeed = PromptForWorldSeed();
+
+            if (worldSeed.HasValue)
+            {
+                Console.WriteLine($"\n🌍 Using world seed: {WorldGenerator.SeedToString(worldSeed.Value)}");
+            }
 
             int partySize = GetPartySize("Enter number of players (1-4): ");
             var party = CreateParty(partySize, true);
@@ -47,7 +98,7 @@ namespace Rpg_Dungeon
             }
             Console.WriteLine("\n💡 Tip: Use option 7 in the main menu to configure multiplayer settings!");
             Thread.Sleep(3000);
-            GameLoopManager.Run(party, true);
+            GameLoopManager.Run(party, true, worldSeed);
         }
 
         private static int GetPartySize(string prompt = "Enter party size (1-4): ")

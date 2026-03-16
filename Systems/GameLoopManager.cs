@@ -8,12 +8,15 @@ namespace Rpg_Dungeon
     internal static class GameLoopManager
     {
         private static bool _isMultiplayerMode = false;
+        private static int? _currentWorldSeed = null;
 
         public static bool IsMultiplayerMode => _isMultiplayerMode;
+        public static int? CurrentWorldSeed => _currentWorldSeed;
 
-        public static void Run(List<Character> party, bool isMultiplayer = false)
+        public static void Run(List<Character> party, bool isMultiplayer = false, int? worldSeed = null)
         {
             _isMultiplayerMode = isMultiplayer;
+            _currentWorldSeed = worldSeed;
             var town = new Town();
             var multiplayer = new Multiplayer();
             var trading = new Trading();
@@ -23,7 +26,7 @@ namespace Rpg_Dungeon
             var weather = new Weather();
             var timeTracker = new TimeOfDay();
             var journal = new Journal();
-            var worldMap = new Map(weather, timeTracker);
+            var worldMap = new Map(weather, timeTracker, worldSeed);
             var npcManager = new NPCManager();
             var mainStoryline = new MainStoryline();
             var fogOfWarMap = new FogOfWarMap();
@@ -34,6 +37,12 @@ namespace Rpg_Dungeon
             town.SetJournal(journal);
             town.SetWeather(weather);
             town.SetTimeTracker(timeTracker);
+
+            if (worldSeed.HasValue)
+            {
+                Console.WriteLine($"\n🌍 World Seed: {WorldGenerator.SeedToString(worldSeed.Value)}");
+                System.Threading.Thread.Sleep(1500);
+            }
 
             // Show story introduction
             if (!mainStoryline.HasSeenIntro())
@@ -72,7 +81,16 @@ namespace Rpg_Dungeon
                 }
                 else if (choice.Trim() == "4")
                 {
-                    town.EnterTown(party);
+                    var gameState = new GameState
+                    {
+                        NPCManager = npcManager,
+                        Journal = journal,
+                        MainStoryline = mainStoryline,
+                        FogOfWarMap = fogOfWarMap,
+                        Weather = weather,
+                        TimeTracker = timeTracker
+                    };
+                    town.EnterTown(party, gameState);
                 }
                 else if (choice.Trim() == "5")
                 {
@@ -130,6 +148,10 @@ namespace Rpg_Dungeon
                 {
                     mainStoryline.DisplayStoryJournal();
                 }
+                else if (choice.Trim() == "17")
+                {
+                    DisplayWorldInfo();
+                }
                 else if (choice.Trim() == "0")
                 {
                     Console.Write("Are you sure you want to quit the game? (y/n): ");
@@ -172,6 +194,7 @@ namespace Rpg_Dungeon
             Console.WriteLine("14) Test Encounter System");
             Console.WriteLine("15) View Fog of War Map 🗺️");
             Console.WriteLine("16) View Story Progress 📖");
+            Console.WriteLine("17) View World Info 🌍");
             Console.WriteLine("0) Quit");
             Console.Write("Choose: ");
         }
@@ -455,6 +478,38 @@ namespace Rpg_Dungeon
             }
 
             Console.WriteLine("\nPress Enter to continue...");
+            Console.ReadLine();
+        }
+
+        private static void DisplayWorldInfo()
+        {
+            Console.Clear();
+            Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
+            Console.WriteLine("║                         WORLD INFORMATION                        ║");
+            Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
+            Console.WriteLine();
+
+            if (_currentWorldSeed.HasValue)
+            {
+                Console.WriteLine($"🌍 World Seed: {WorldGenerator.SeedToString(_currentWorldSeed.Value)}");
+                Console.WriteLine($"   (Numeric: {_currentWorldSeed.Value})");
+                Console.WriteLine();
+                Console.WriteLine("💡 About World Seeds:");
+                Console.WriteLine("   • Each seed generates a unique world layout");
+                Console.WriteLine("   • Same seed = Same towns, dungeons, and camps");
+                Console.WriteLine("   • Use this seed to replay the same world");
+                Console.WriteLine("   • Share seeds with friends for co-op challenges!");
+                Console.WriteLine();
+                Console.WriteLine("📝 To use this seed in a new game:");
+                Console.WriteLine($"   Enter '{WorldGenerator.SeedToString(_currentWorldSeed.Value)}' when prompted");
+            }
+            else
+            {
+                Console.WriteLine("⚠️  No world seed information available.");
+                Console.WriteLine("   (This game may have been started before the seed system)");
+            }
+
+            Console.WriteLine("\nPress Enter to return to main menu...");
             Console.ReadLine();
         }
     }

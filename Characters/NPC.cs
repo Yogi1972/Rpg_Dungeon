@@ -393,6 +393,9 @@ namespace Rpg_Dungeon
 
         private void InitializeNPCs()
         {
+            // Main Town - GreyWolf (10+ NPCs)
+            InitializeGreyWolfNPCs();
+
             // Major Towns - 5-8 NPCs each
             InitializeHavenbrookNPCs();
             InitializeIronforgeNPCs();
@@ -400,11 +403,194 @@ namespace Rpg_Dungeon
             InitializeSunspireNPCs();
             InitializeShadowkeepNPCs();
 
-            // Settlements - 2-3 NPCs each
+            // Settlements - 3-5 NPCs each (expanded)
             InitializeSettlementNPCs();
 
             // Camps - 1 NPC each
             InitializeCampNPCs();
+        }
+
+        private void InitializeGreyWolfNPCs()
+        {
+            var npcs = new List<NPC>();
+
+            // Central Square NPCs
+            var townCrier = new NPC("Harold the Town Crier", NPCType.Informant,
+                "A loud voice announcing news and events throughout the town.",
+                "GreyWolf Town");
+            npcs.Add(townCrier);
+
+            var fountainKeeper = new NPC("Old Tom", NPCType.Elder,
+                "An elderly man who maintains the town fountain and shares stories of the past.",
+                "GreyWolf Town");
+            npcs.Add(fountainKeeper);
+
+            var streetMerchant = new NPC("Rosie the Flower Seller", NPCType.Merchant,
+                "A cheerful woman selling flowers and small trinkets in the square.",
+                "GreyWolf Town");
+            npcs.Add(streetMerchant);
+
+            // Crafters District (North Side) NPCs
+            var masterBlacksmith = new NPC("Bjorn Ironhammer", NPCType.Questgiver,
+                "The master blacksmith at The Rusty Anvil, always needing rare materials.",
+                "GreyWolf Town");
+            masterBlacksmith.AvailableQuests.Add(new Quest(
+                "Forge Master's Request",
+                "I need 5 iron ingots to create masterwork weapons. Collect them for me.",
+                QuestType.Collect,
+                QuestDifficulty.Medium,
+                "Iron Ingot",
+                5,
+                100,
+                150
+            ));
+            npcs.Add(masterBlacksmith);
+
+            var leatherWorker = new NPC("Talia Softhand", NPCType.Merchant,
+                "An expert leather worker at Tanner's Workshop, known for quality armor.",
+                "GreyWolf Town");
+            npcs.Add(leatherWorker);
+
+            var jeweler = new NPC("Gemma Goldweaver", NPCType.Merchant,
+                "A skilled jeweler at Golden Trinkets, with an eye for precious stones.",
+                "GreyWolf Town");
+            npcs.Add(jeweler);
+
+            var craftApprentice = new NPC("Young Marcus", NPCType.Citizen,
+                "An eager apprentice running errands between the craft shops.",
+                "GreyWolf Town");
+            npcs.Add(craftApprentice);
+
+            // Service Quarter (East Side) NPCs
+            var innkeeper = new NPC("Martha Warmheart", NPCType.Citizen,
+                "The kind innkeeper of The Cozy Inn, always ready with a warm meal.",
+                "GreyWolf Town");
+            npcs.Add(innkeeper);
+
+            var banker = new NPC("Cornelius Goldvault", NPCType.Merchant,
+                "The strict but fair banker who manages GreyWolf Bank & Storage.",
+                "GreyWolf Town");
+            npcs.Add(banker);
+
+            var guildMaster = new NPC("Guild Master Varen", NPCType.Questgiver,
+                "The experienced guild master at the Adventurer's Guild.",
+                "GreyWolf Town");
+            guildMaster.AvailableQuests.Add(new Quest(
+                "Guild Initiation",
+                "Prove yourself by defeating 10 monsters in the wilderness.",
+                QuestType.Kill,
+                QuestDifficulty.Medium,
+                "Monster",
+                10,
+                120,
+                200
+            ));
+            npcs.Add(guildMaster);
+
+            var bountyClerk = new NPC("Scarlett Redmark", NPCType.Informant,
+                "A sharp-eyed woman who tracks bounties at the Hunter's Lodge.",
+                "GreyWolf Town");
+            npcs.Add(bountyClerk);
+
+            var trainer = new NPC("Master Swordsman Drake", NPCType.Questgiver,
+                "A legendary warrior who trains adventurers at the Training Hall.",
+                "GreyWolf Town");
+            trainer.AvailableQuests.Add(new Quest(
+                "Warrior's Trial",
+                "Complete training by exploring 3 dangerous areas.",
+                QuestType.Explore,
+                QuestDifficulty.Medium,
+                "Dungeon Level",
+                3,
+                90,
+                140
+            ));
+            npcs.Add(trainer);
+
+            // Mystic Quarter (South Side) NPCs
+            var arcaneShopkeeper = new NPC("Wizard Aldous", NPCType.Merchant,
+                "An eccentric wizard running the Arcane Emporium with rare magical items.",
+                "GreyWolf Town");
+            npcs.Add(arcaneShopkeeper);
+
+            var apothecary = new NPC("Healer Lyanna", NPCType.Merchant,
+                "A gentle healer at Healing Hands, skilled in herbal remedies.",
+                "GreyWolf Town");
+            npcs.Add(apothecary);
+
+            var achievementKeeper = new NPC("Historian Eldric", NPCType.Elder,
+                "The keeper of the Hall of Fame, recording legendary deeds.",
+                "GreyWolf Town");
+            npcs.Add(achievementKeeper);
+
+            var ascensionMaster = new NPC("Champion Seraphina", NPCType.Elder,
+                "A legendary champion who oversees the path to ascension.",
+                "GreyWolf Town", true, 25);
+            npcs.Add(ascensionMaster);
+
+            // Entertainment District (West Side) NPCs
+            var gambler = new NPC("Lucky Fingers", NPCType.Merchant,
+                "A charismatic host of The Lucky Dragon gambling den.",
+                "GreyWolf Town");
+            npcs.Add(gambler);
+
+            var beastTamer = new NPC("Fauna Wildwhisper", NPCType.Merchant,
+                "A kind beast tamer at the Pet Stable with many animal companions.",
+                "GreyWolf Town");
+            npcs.Add(beastTamer);
+
+            var tailor = new NPC("Silk Silverthimble", NPCType.Merchant,
+                "An elegant elven tailor at Fine Threads, creating beautiful garments.",
+                "GreyWolf Town");
+            npcs.Add(tailor);
+
+            // General Town NPCs
+            var guardCaptain = new NPC("Captain Ironshield", NPCType.Guard,
+                "The captain of the GreyWolf town guard, maintaining order and safety.",
+                "GreyWolf Town");
+            guardCaptain.AvailableQuests.Add(new Quest(
+                "Town Defense",
+                "Bandits have been spotted nearby. Eliminate 6 threats to the town.",
+                QuestType.Kill,
+                QuestDifficulty.Easy,
+                "Bandit",
+                6,
+                80,
+                120
+            ));
+            npcs.Add(guardCaptain);
+
+            var townPatrol = new NPC("Guard Brennan", NPCType.Guard,
+                "A friendly town guard patrolling the streets.",
+                "GreyWolf Town");
+            npcs.Add(townPatrol);
+
+            var wanderer = new NPC("Mysterious Wanderer", NPCType.Traveler,
+                "A hooded figure who has seen many lands and knows many secrets.",
+                "GreyWolf Town");
+            npcs.Add(wanderer);
+
+            var baker = new NPC("Betty Sweetbread", NPCType.Citizen,
+                "A plump baker whose shop fills the air with delicious scents.",
+                "GreyWolf Town");
+            npcs.Add(baker);
+
+            var librarian = new NPC("Scholar Percival", NPCType.Informant,
+                "A bookish man who runs the town library and knows local lore.",
+                "GreyWolf Town");
+            npcs.Add(librarian);
+
+            var stableHand = new NPC("Jack Haymaker", NPCType.Citizen,
+                "A hard-working stable hand who cares for horses and mounts.",
+                "GreyWolf Town");
+            npcs.Add(stableHand);
+
+            var childNPC = new NPC("Little Timmy", NPCType.Citizen,
+                "A curious child who loves hearing about adventures.",
+                "GreyWolf Town");
+            npcs.Add(childNPC);
+
+            _npcsByLocation["GreyWolf Town"] = npcs;
         }
 
         private void InitializeHavenbrookNPCs()
@@ -714,36 +900,59 @@ namespace Rpg_Dungeon
             {
                 var npcs = new List<NPC>();
 
-                // Every settlement has an innkeeper
-                var innkeeper = new NPC($"{settlementName} Innkeeper", NPCType.Citizen,
-                    $"The friendly innkeeper of {settlementName}.",
+                // Every settlement has an innkeeper (guaranteed)
+                var innkeeper = new NPC(GetSettlementInnkeeperName(settlementName), NPCType.Citizen,
+                    $"The welcoming innkeeper of {settlementName}.",
                     settlementName);
                 npcs.Add(innkeeper);
 
-                // Random questgiver or merchant
-                if (_random.Next(0, 2) == 0)
+                // Every settlement has a guard (guaranteed)
+                var guard = new NPC(GetSettlementGuardName(settlementName), NPCType.Guard,
+                    $"A vigilant guard protecting {settlementName} from threats.",
+                    settlementName);
+                npcs.Add(guard);
+
+                // Every settlement has a merchant (guaranteed)
+                var merchant = new NPC(GetSettlementMerchantName(settlementName), NPCType.Merchant,
+                    $"A traveling merchant who regularly stops at {settlementName}.",
+                    settlementName);
+                npcs.Add(merchant);
+
+                // Most settlements have a local questgiver (80% chance)
+                if (_random.Next(0, 10) < 8)
                 {
-                    var questgiver = new NPC($"Local Guide", NPCType.Questgiver,
-                        "A local resident who might have tasks for you.",
+                    var questgiver = new NPC(GetSettlementQuestgiverName(settlementName), NPCType.Questgiver,
+                        $"A local resident of {settlementName} who needs assistance.",
                         settlementName);
                     questgiver.AvailableQuests.Add(GenerateRandomSettlementQuest());
                     npcs.Add(questgiver);
                 }
-                else
+
+                // Additional citizens for atmosphere (60% chance)
+                if (_random.Next(0, 10) < 6)
                 {
-                    var merchant = new NPC($"Traveling Merchant", NPCType.Merchant,
-                        "A merchant passing through with various goods.",
+                    var citizen1 = new NPC(GetSettlementCitizenName(settlementName), NPCType.Citizen,
+                        $"A local resident of {settlementName} going about their day.",
                         settlementName);
-                    npcs.Add(merchant);
+                    npcs.Add(citizen1);
                 }
 
-                // Random additional NPC
-                if (_random.Next(0, 3) == 0)
+                // Occasional travelers passing through (40% chance)
+                if (_random.Next(0, 10) < 4)
                 {
-                    var guard = new NPC($"Settlement Guard", NPCType.Guard,
-                        "A guard keeping watch over the settlement.",
+                    var traveler = new NPC(GetSettlementTravelerName(), NPCType.Traveler,
+                        $"A weary traveler resting at {settlementName} before continuing their journey.",
                         settlementName);
-                    npcs.Add(guard);
+                    npcs.Add(traveler);
+                }
+
+                // Rare informants with useful information (30% chance)
+                if (_random.Next(0, 10) < 3)
+                {
+                    var informant = new NPC(GetSettlementInformantName(), NPCType.Informant,
+                        $"A mysterious person who seems to know the area around {settlementName} well.",
+                        settlementName);
+                    npcs.Add(informant);
                 }
 
                 _npcsByLocation[settlementName] = npcs;
@@ -933,6 +1142,86 @@ namespace Rpg_Dungeon
                 NPCType.Questgiver => "Someone who looks like they need help.",
                 _ => "A local resident going about their day."
             };
+        }
+
+        private string GetSettlementInnkeeperName(string settlementName)
+        {
+            return settlementName switch
+            {
+                "Willowdale" => "Innkeeper Margaret",
+                "Crossroads Keep" => "Innkeeper Roland",
+                "Pinewood" => "Innkeeper Pine",
+                "Riverside" => "Innkeeper Marina",
+                "Stonebridge" => "Innkeeper Mason",
+                "Frosthollow" => "Innkeeper Frost",
+                "Oasis Rest" => "Innkeeper Sahara",
+                "Moonwell" => "Innkeeper Luna",
+                "Thornwall" => "Innkeeper Thorn",
+                "Ghostlight" => "Innkeeper Shade",
+                _ => "Local Innkeeper"
+            };
+        }
+
+        private string GetSettlementGuardName(string settlementName)
+        {
+            return settlementName switch
+            {
+                "Willowdale" => "Guard Willow",
+                "Crossroads Keep" => "Sergeant Cross",
+                "Pinewood" => "Ranger Oakley",
+                "Riverside" => "Patrol Officer Wade",
+                "Stonebridge" => "Guard Rockheart",
+                "Frosthollow" => "Sentinel Icewind",
+                "Oasis Rest" => "Desert Warden",
+                "Moonwell" => "Night Watch",
+                "Thornwall" => "Wall Guardian",
+                "Ghostlight" => "Spectral Guard",
+                _ => "Settlement Guard"
+            };
+        }
+
+        private string GetSettlementMerchantName(string settlementName)
+        {
+            return settlementName switch
+            {
+                "Willowdale" => "Merchant Greenleaf",
+                "Crossroads Keep" => "Trader Pathfinder",
+                "Pinewood" => "Merchant Woodsworth",
+                "Riverside" => "Fisher's Friend",
+                "Stonebridge" => "Trader Bridgeman",
+                "Frosthollow" => "Winter Merchant",
+                "Oasis Rest" => "Desert Trader Kalim",
+                "Moonwell" => "Merchant Starlight",
+                "Thornwall" => "Trader Brambleton",
+                "Ghostlight" => "Wandering Peddler",
+                _ => "Traveling Merchant"
+            };
+        }
+
+        private string GetSettlementQuestgiverName(string settlementName)
+        {
+            var names = new[] { "Elder", "Chief", "Mayor", "Headman", "Leader", "Wise One" };
+            var settlementShortName = settlementName.Replace(" ", "").Split(' ')[0];
+            return $"{names[_random.Next(names.Length)]} of {settlementShortName}";
+        }
+
+        private string GetSettlementCitizenName(string settlementName)
+        {
+            var firstNames = new[] { "Emma", "Jack", "Olivia", "Henry", "Sophia", "William", "Ava", "James", "Isabella", "Oliver" };
+            var occupations = new[] { "the Farmer", "the Baker", "the Woodcutter", "the Fisher", "the Weaver", "the Carpenter" };
+            return $"{firstNames[_random.Next(firstNames.Length)]} {occupations[_random.Next(occupations.Length)]}";
+        }
+
+        private string GetSettlementTravelerName()
+        {
+            var descriptions = new[] { "Weary Pilgrim", "Road Scholar", "Merchant Caravan", "Wandering Minstrel", "Lost Traveler", "Foreign Visitor" };
+            return descriptions[_random.Next(descriptions.Length)];
+        }
+
+        private string GetSettlementInformantName()
+        {
+            var names = new[] { "Mysterious Stranger", "Hooded Figure", "Old Hermit", "Wandering Sage", "Cloaked Visitor", "Silent Observer" };
+            return names[_random.Next(names.Length)];
         }
 
         #endregion
