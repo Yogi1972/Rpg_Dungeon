@@ -12,7 +12,7 @@ A text-based RPG dungeon crawler adventure game built with .NET 10.0.
 
 **👉 [Download Latest Release (v3.0.0)](https://github.com/Yogi1972/Rpg_Dungeon/releases/latest)**
 
-1. Download `RPG_Dungeon_v3.0.0_Windows.zip`
+1. Download `RPG_Dungeon_v3.0.0_win-x64.zip`
 2. Extract the ZIP file to a folder
 3. Read `WINDOWS_DEFENDER_HELP.md` (Important!)
 4. Run `ConsoleApplication.exe`
