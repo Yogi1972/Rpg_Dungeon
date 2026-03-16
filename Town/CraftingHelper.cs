@@ -13,8 +13,8 @@ namespace Rpg_Dungeon
             for (int i = 0; i < party.Count; i++)
             {
                 var professions = ProfessionManager.GetCharacterProfessions(party[i]);
-                var profText = professions.Count > 0 
-                    ? $" [{string.Join(", ", professions.Select(p => ProfessionManager.GetProfessionIcon(p)))}]" 
+                var profText = professions.Count > 0
+                    ? $" [{string.Join(", ", professions.Select(p => ProfessionManager.GetProfessionIcon(p)))}]"
                     : "";
                 Console.WriteLine($"{i + 1}) {party[i].Name}{profText} - Gold: {party[i].Inventory.Gold}");
             }
@@ -34,8 +34,8 @@ namespace Rpg_Dungeon
             for (int i = 0; i < crafters.Count; i++)
             {
                 var professions = ProfessionManager.GetCharacterProfessions(crafters[i]);
-                var profText = professions.Count > 0 
-                    ? $" [{string.Join(", ", professions.Select(p => ProfessionManager.GetProfessionIcon(p)))}]" 
+                var profText = professions.Count > 0
+                    ? $" [{string.Join(", ", professions.Select(p => ProfessionManager.GetProfessionIcon(p)))}]"
                     : "";
                 Console.WriteLine($"{i + 1}) {crafters[i].Name}{profText} - Gold: {crafters[i].Inventory.Gold}");
             }
@@ -51,7 +51,7 @@ namespace Rpg_Dungeon
 
         public static bool CraftItem(Character crafter, (string name, int count)[] materials, Equipment result, string itemName, CraftingProfession requiredProfession)
         {
-            if (requiredProfession != CraftingProfession.None && 
+            if (requiredProfession != CraftingProfession.None &&
                 !ProfessionManager.CanCraftWithProfession(crafter, requiredProfession))
             {
                 Console.WriteLine($"\n⚠️ {crafter.Name} needs {requiredProfession} profession to craft this!");
@@ -101,7 +101,7 @@ namespace Rpg_Dungeon
 
         public static bool CraftGenericItem(Character crafter, (string name, int count)[] materials, GenericItem result, string itemName, CraftingProfession requiredProfession, int craftAmount = 1)
         {
-            if (requiredProfession != CraftingProfession.None && 
+            if (requiredProfession != CraftingProfession.None &&
                 !ProfessionManager.CanCraftWithProfession(crafter, requiredProfession))
             {
                 Console.WriteLine($"\n⚠️ {crafter.Name} needs {requiredProfession} profession to craft this!");
@@ -155,7 +155,7 @@ namespace Rpg_Dungeon
 
         public static bool BrewPotion(Character brewer, (string name, int count)[] materials, GenericItem result, int goldCost, string potionName, CraftingProfession requiredProfession)
         {
-            if (requiredProfession == CraftingProfession.Alchemy && 
+            if (requiredProfession == CraftingProfession.Alchemy &&
                 !ProfessionManager.CanCraftWithProfession(brewer, CraftingProfession.Alchemy) &&
                 !(brewer is Mage || brewer is Priest))
             {
@@ -214,7 +214,7 @@ namespace Rpg_Dungeon
 
         public static bool CraftTorchItem(Character crafter, (string name, int count)[] materials, Torch result, string itemName, CraftingProfession requiredProfession)
         {
-            if (requiredProfession != CraftingProfession.None && 
+            if (requiredProfession != CraftingProfession.None &&
                 !ProfessionManager.CanCraftWithProfession(crafter, requiredProfession))
             {
                 Console.WriteLine($"\n⚠️ {crafter.Name} needs {requiredProfession} profession to craft this!");
@@ -264,7 +264,7 @@ namespace Rpg_Dungeon
 
         public static bool CraftBackpackItem(Character crafter, (string name, int count)[] materials, Backpack result, string itemName, CraftingProfession requiredProfession)
         {
-            if (requiredProfession != CraftingProfession.None && 
+            if (requiredProfession != CraftingProfession.None &&
                 !ProfessionManager.CanCraftWithProfession(crafter, requiredProfession))
             {
                 Console.WriteLine($"\n⚠️ {crafter.Name} needs {requiredProfession} profession to craft this!");

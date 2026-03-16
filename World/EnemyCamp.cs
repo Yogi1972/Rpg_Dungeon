@@ -172,7 +172,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine($"   Camp Type: {GetCampTypeDescription()}");
                 Console.WriteLine($"   Difficulty: {GetDifficultyDescription()}");
                 Console.WriteLine($"   Recommended Level: {RequiredLevel}+");
-                
+
                 if (IsCleared)
                 {
                     Console.WriteLine($"\n   ✅ CLEARED - This camp has been conquered!");
@@ -366,7 +366,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine($"The enemy camp is cleared and no longer a threat.\n");
 
                 DistributeRewards(party);
-                
+
                 // Achievement tracking
                 gameState.AchievementTracker?.TrackProgress("ClearEnemyCamps", 1);
 
@@ -481,7 +481,7 @@ namespace Rpg_Dungeon
             // Simple heuristic based on item properties
             if (item is Equipment equipment)
             {
-                int totalStats = equipment.StrengthBonus + equipment.AgilityBonus + 
+                int totalStats = equipment.StrengthBonus + equipment.AgilityBonus +
                                 equipment.IntelligenceBonus + equipment.ArmorBonus;
 
                 if (totalStats >= 12) return LootRarity.Legendary;
@@ -527,7 +527,7 @@ namespace Rpg_Dungeon
             Console.WriteLine($"   Possible drops: Equipment, Materials, Consumables");
             Console.WriteLine($"   Rarities: ⚪Common 🟢Uncommon 🔵Rare 🟣Epic 🟠Legendary");
             Console.WriteLine($"\n--- Party Assessment ---");
-            
+
             int avgPartyLevel = party.Sum(p => p.Level) / party.Count;
             int levelDifference = avgPartyLevel - RequiredLevel;
 
@@ -698,9 +698,9 @@ namespace Rpg_Dungeon
             Console.WriteLine($"   Status: {(IsCleared ? "✅ Cleared" : "⚠️ Hostile")}");
             if (!IsCleared)
             {
-                    Console.WriteLine($"   Rewards: {GoldReward} gold, {ExperienceReward} XP + Loot");
-                    }
-                }
+                Console.WriteLine($"   Rewards: {GoldReward} gold, {ExperienceReward} XP + Loot");
+            }
+        }
 
         private string GetCampTypeDescription()
         {

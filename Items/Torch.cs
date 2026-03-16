@@ -15,7 +15,7 @@ namespace Rpg_Dungeon
 
         #region Constructor
 
-        public Torch(string name, int maxBurnTime, int price = 10) 
+        public Torch(string name, int maxBurnTime, int price = 10)
             : base(name, EquipmentType.OffHand, maxDurability: maxBurnTime, price: price)
         {
             MaxBurnTimeHours = maxBurnTime;
@@ -62,7 +62,7 @@ namespace Rpg_Dungeon
             if (!IsLit || IsBurnedOut) return;
 
             BurnTimeHours = Math.Max(0, BurnTimeHours - hours);
-            
+
             // Also damage the durability
             Damage(hours);
 
@@ -81,10 +81,10 @@ namespace Rpg_Dungeon
         {
             if (IsBurnedOut)
                 return $"{Name} [Burned Out]";
-            
+
             if (IsLit)
                 return $"{Name} [🔥 Lit - {BurnTimeHours}h remaining]";
-            
+
             return $"{Name} [Unlit - {BurnTimeHours}h fuel]";
         }
 

@@ -103,10 +103,10 @@ namespace Rpg_Dungeon
             {
                 int hpRestore = member.GetTotalMaxHP() / 4;
                 int staminaRestore = member.GetTotalMaxStamina() / 4;
-                
+
                 member.Heal(hpRestore);
                 member.RestoreStamina(staminaRestore);
-                
+
                 Console.WriteLine($"{member.Name} recovered {hpRestore} HP and {staminaRestore} Stamina.");
             }
 

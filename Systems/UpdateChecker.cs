@@ -53,9 +53,9 @@ namespace Rpg_Dungeon.Systems
                 _httpClient.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
 
                 var response = await _httpClient.GetStringAsync(VersionControl.GitHubVersionCheckUrl);
-                var githubRelease = JsonSerializer.Deserialize<GitHubRelease>(response, new JsonSerializerOptions 
-                { 
-                    PropertyNameCaseInsensitive = true 
+                var githubRelease = JsonSerializer.Deserialize<GitHubRelease>(response, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
                 });
 
                 if (githubRelease == null || string.IsNullOrWhiteSpace(githubRelease.tag_name))
@@ -184,29 +184,29 @@ namespace Rpg_Dungeon.Systems
                     Console.WriteLine("  🎉 NEW UPDATE AVAILABLE!");
                     Console.WriteLine();
                     Console.WriteLine($"  📦 Latest Version: {remoteVersion.MajorVersion}.{remoteVersion.MinorVersion}.{remoteVersion.PatchVersion}");
-                    
+
                     if (!string.IsNullOrWhiteSpace(remoteVersion.PreReleaseTag))
                     {
                         Console.WriteLine($"  🚧 Pre-release: {remoteVersion.PreReleaseTag}");
                     }
-                    
+
                     if (!string.IsNullOrWhiteSpace(remoteVersion.ReleaseDate))
                     {
                         Console.WriteLine($"  📅 Released: {remoteVersion.ReleaseDate}");
                     }
-                    
+
                     Console.WriteLine();
-                    
+
                     if (!string.IsNullOrWhiteSpace(remoteVersion.ReleaseNotes))
                     {
                         Console.WriteLine("  📝 What's New:");
                         Console.WriteLine($"     {remoteVersion.ReleaseNotes}");
                         Console.WriteLine();
                     }
-                    
+
                     Console.WriteLine("  💡 Press 'D' to download now, or Enter to continue...");
                     var key = Console.ReadKey(true);
-                    
+
                     if (key.KeyChar == 'D' || key.KeyChar == 'd')
                     {
                         OpenGitHubReleases();
@@ -217,7 +217,7 @@ namespace Rpg_Dungeon.Systems
                     Console.WriteLine("  ✅ You're running the latest version!");
                     Console.WriteLine();
                     Console.WriteLine("  📌 No updates available at this time.");
-                    
+
                     if (VersionControl.IsPreRelease)
                     {
                         Console.WriteLine();

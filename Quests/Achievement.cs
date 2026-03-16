@@ -38,7 +38,7 @@ namespace Rpg_Dungeon
         public void AddProgress(int amount = 1)
         {
             if (IsUnlocked) return;
-            
+
             CurrentValue += amount;
             if (CurrentValue >= TargetValue)
             {

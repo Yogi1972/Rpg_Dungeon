@@ -344,7 +344,7 @@ namespace Rpg_Dungeon
         {
             int durability = 80 + (_rng.Next(-10, 11));
             int price = (strBonus + intBonus) * 50;
-            return new Equipment(name, EquipmentType.Weapon, durability, price, 
+            return new Equipment(name, EquipmentType.Weapon, durability, price,
                 str: strBonus, intel: intBonus);
         }
 
@@ -352,7 +352,7 @@ namespace Rpg_Dungeon
         {
             int durability = 100 + (_rng.Next(-15, 16));
             int price = (armorBonus + strBonus + agiBonus) * 40;
-            return new Equipment(name, EquipmentType.Armor, durability, price, 
+            return new Equipment(name, EquipmentType.Armor, durability, price,
                 str: strBonus, agi: agiBonus, armor: armorBonus);
         }
 

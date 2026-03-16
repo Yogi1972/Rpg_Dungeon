@@ -95,7 +95,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine("╚════════════════════════════════════════╝");
                 Console.WriteLine($"Active Quests: {_activeQuests.Count} | Completed Quests: {_completedQuests.Count}");
                 Console.WriteLine($"Active Bounties: {_activeBounties.Count} | Completed Bounties: {_completedBounties.Count}");
-                
+
                 Console.WriteLine("\n1) View Active Quests");
                 Console.WriteLine("2) View Completed Quests");
                 Console.WriteLine("3) View Active Bounties");
@@ -151,7 +151,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine($"  {q.Description}");
                 Console.WriteLine($"  Type: {q.Type} - {q.ObjectiveName}");
                 Console.WriteLine($"  Progress: {q.CurrentProgress}/{q.ObjectiveCount}");
-                Console.WriteLine($"  Rewards: {q.GoldReward}g, {q.ExperienceReward} XP" + 
+                Console.WriteLine($"  Rewards: {q.GoldReward}g, {q.ExperienceReward} XP" +
                                 (q.EquipmentReward != null ? $", {q.EquipmentReward.Name}" : ""));
                 Console.WriteLine($"  Status: {(q.IsCompleted ? "✓ COMPLETE - Claim at Quest Board" : "○ In Progress")}");
             }
@@ -226,7 +226,7 @@ namespace Rpg_Dungeon
             Console.WriteLine("\n--- Quests ---");
             Console.WriteLine($"Active: {_activeQuests.Count}");
             Console.WriteLine($"Completed: {_completedQuests.Count}");
-            
+
             if (_activeQuests.Count > 0)
             {
                 Console.WriteLine("\nActive Quests:");
@@ -240,7 +240,7 @@ namespace Rpg_Dungeon
             Console.WriteLine("\n--- Bounties ---");
             Console.WriteLine($"Active: {_activeBounties.Count}");
             Console.WriteLine($"Completed: {_completedBounties.Count}");
-            
+
             if (_activeBounties.Count > 0)
             {
                 Console.WriteLine("\nActive Bounties:");

@@ -161,8 +161,8 @@ namespace Rpg_Dungeon
                 Console.WriteLine("Current party status:");
                 foreach (var member in party)
                 {
-                    string status = member.HasChampionClass 
-                        ? $"[{member.ChampionClass}]" 
+                    string status = member.HasChampionClass
+                        ? $"[{member.ChampionClass}]"
                         : $"[Level {member.Level}/25]";
                     Console.WriteLine($"  - {member.Name} {status}");
                 }

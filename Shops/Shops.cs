@@ -142,8 +142,8 @@ namespace Night.Shops
             if (!buyer.Inventory.SpendGold(entry.Price)) { Console.WriteLine("Not enough gold."); return; }
 
             entry.Quantity--;
-            var newEquip = new Equipment(entry.Item.Name, entry.Item.Type, entry.Item.MaxDurability, entry.Price, 
-                                        entry.Item.StrengthBonus, entry.Item.AgilityBonus, entry.Item.IntelligenceBonus, 
+            var newEquip = new Equipment(entry.Item.Name, entry.Item.Type, entry.Item.MaxDurability, entry.Price,
+                                        entry.Item.StrengthBonus, entry.Item.AgilityBonus, entry.Item.IntelligenceBonus,
                                         entry.Item.MaxHPBonus, entry.Item.MaxManaBonus, entry.Item.MaxStaminaBonus, entry.Item.ArmorBonus);
             buyer.Inventory.AddItem(newEquip);
             Console.WriteLine($"{buyer.Name} bought {newEquip.Name} for {entry.Price} gold.");
@@ -228,14 +228,14 @@ namespace Night.Shops
             {
                 if (slots[i] is Equipment eq && (typeFilter == null || eq.Type == typeFilter))
                 {
-                    repairableItems.Add(($"Inventory Slot {i+1}", eq));
+                    repairableItems.Add(($"Inventory Slot {i + 1}", eq));
                 }
             }
 
-            if (repairableItems.Count == 0) 
-            { 
-                Console.WriteLine($"No {typeName} equipment to repair."); 
-                return; 
+            if (repairableItems.Count == 0)
+            {
+                Console.WriteLine($"No {typeName} equipment to repair.");
+                return;
             }
 
             for (int i = 0; i < repairableItems.Count; i++)
@@ -252,16 +252,16 @@ namespace Night.Shops
             var chosen = repairableItems[selIdx - 1];
             int cost = chosen.eq.RepairCost();
 
-            if (cost <= 0) 
-            { 
-                Console.WriteLine("Item is already at full durability!"); 
-                return; 
+            if (cost <= 0)
+            {
+                Console.WriteLine("Item is already at full durability!");
+                return;
             }
 
-            if (!c.Inventory.SpendGold(cost)) 
-            { 
-                Console.WriteLine($"Not enough gold. Repair costs {cost}g but you have {c.Inventory.Gold}g."); 
-                return; 
+            if (!c.Inventory.SpendGold(cost))
+            {
+                Console.WriteLine($"Not enough gold. Repair costs {cost}g but you have {c.Inventory.Gold}g.");
+                return;
             }
 
             chosen.eq.Repair();
@@ -272,7 +272,7 @@ namespace Night.Shops
         {
             Console.WriteLine("\n=== EQUIPMENT REPAIR SERVICE ===");
             Console.WriteLine("Select who needs a repair:");
-            for (int i = 0; i < party.Count; i++) 
+            for (int i = 0; i < party.Count; i++)
             {
                 Console.WriteLine($"{i + 1}) {party[i].Name} - Gold: {party[i].Inventory.Gold}");
             }
@@ -353,16 +353,16 @@ namespace Night.Shops
                 if (slots[i] is Equipment eq)
                 {
                     string durStatus = eq.Durability <= eq.MaxDurability / 4 ? " [LOW!]" : "";
-                    Console.WriteLine($"{itemNum}) [Inventory Slot {i+1}]: {eq.Name} (Dur: {eq.Durability}/{eq.MaxDurability}){durStatus} - Repair: {eq.RepairCost()}g");
+                    Console.WriteLine($"{itemNum}) [Inventory Slot {i + 1}]: {eq.Name} (Dur: {eq.Durability}/{eq.MaxDurability}){durStatus} - Repair: {eq.RepairCost()}g");
                     repairableItems.Add(($"Slot{i}", eq));
                     itemNum++;
                 }
             }
 
-            if (repairableItems.Count == 0) 
-            { 
-                Console.WriteLine("No equipment to repair."); 
-                return; 
+            if (repairableItems.Count == 0)
+            {
+                Console.WriteLine("No equipment to repair.");
+                return;
             }
 
             Console.WriteLine("\nOptions:");
@@ -374,25 +374,25 @@ namespace Night.Shops
             if (sel.Trim().Equals("R", StringComparison.OrdinalIgnoreCase))
             {
                 int totalCost = repairableItems.Sum(item => item.eq.RepairCost());
-                if (totalCost <= 0) 
-                { 
-                    Console.WriteLine("All equipment is already at full durability!"); 
-                    return; 
+                if (totalCost <= 0)
+                {
+                    Console.WriteLine("All equipment is already at full durability!");
+                    return;
                 }
 
                 Console.WriteLine($"\nTotal repair cost for all equipment: {totalCost} gold");
                 Console.Write("Proceed with repair all? (y/n): ");
                 var confirm = Console.ReadLine() ?? string.Empty;
-                if (!confirm.Trim().Equals("y", StringComparison.OrdinalIgnoreCase)) 
+                if (!confirm.Trim().Equals("y", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("Repair cancelled.");
                     return;
                 }
 
-                if (!c.Inventory.SpendGold(totalCost)) 
-                { 
-                    Console.WriteLine($"Not enough gold. You have {c.Inventory.Gold}g but need {totalCost}g."); 
-                    return; 
+                if (!c.Inventory.SpendGold(totalCost))
+                {
+                    Console.WriteLine($"Not enough gold. You have {c.Inventory.Gold}g but need {totalCost}g.");
+                    return;
                 }
 
                 foreach (var item in repairableItems)
@@ -411,10 +411,10 @@ namespace Night.Shops
                 var chosen = repairableItems[selIdx - 1];
                 int cost = chosen.eq.RepairCost();
                 if (cost <= 0) { Console.WriteLine("Item does not need repair."); return; }
-                if (!c.Inventory.SpendGold(cost)) 
-                { 
-                    Console.WriteLine($"Not enough gold. Repair costs {cost}g but you have {c.Inventory.Gold}g."); 
-                    return; 
+                if (!c.Inventory.SpendGold(cost))
+                {
+                    Console.WriteLine($"Not enough gold. Repair costs {cost}g but you have {c.Inventory.Gold}g.");
+                    return;
                 }
                 chosen.eq.Repair();
                 Console.WriteLine($"🔨 {chosen.eq.Name} repaired to full durability! Gold remaining: {c.Inventory.Gold}");

@@ -9,7 +9,7 @@ namespace Rpg_Dungeon
         public static void ShowEquippedItems(Character member)
         {
             Console.WriteLine($"\n=== {member.Name}'s Equipment ===");
-            
+
             ShowEquippedSlot("Weapon", member.Inventory.EquippedWeapon);
             ShowEquippedSlot("Armor", member.Inventory.EquippedArmor);
             ShowEquippedSlot("Accessory", member.Inventory.EquippedAccessory);

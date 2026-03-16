@@ -112,8 +112,8 @@ namespace Rpg_Dungeon.Systems
         /// <summary>
         /// Helper method to create weapons with stats
         /// </summary>
-        private static Equipment CreateWeapon(string name, int str = 0, int agi = 0, int intel = 0, 
-                                              int hp = 0, int mana = 0, int stamina = 0, int armor = 0, 
+        private static Equipment CreateWeapon(string name, int str = 0, int agi = 0, int intel = 0,
+                                              int hp = 0, int mana = 0, int stamina = 0, int armor = 0,
                                               int dur = 50, int price = 25)
         {
             return new Equipment(name, EquipmentType.Weapon, dur, price, str, agi, intel, hp, mana, stamina, armor);
@@ -190,8 +190,8 @@ namespace Rpg_Dungeon.Systems
         /// <summary>
         /// Helper method to create armor with stats
         /// </summary>
-        private static Equipment CreateArmor(string name, int str = 0, int agi = 0, int intel = 0, 
-                                             int hp = 0, int mana = 0, int stamina = 0, int armor = 0, 
+        private static Equipment CreateArmor(string name, int str = 0, int agi = 0, int intel = 0,
+                                             int hp = 0, int mana = 0, int stamina = 0, int armor = 0,
                                              int dur = 50, int price = 30)
         {
             return new Equipment(name, EquipmentType.Armor, dur, price, str, agi, intel, hp, mana, stamina, armor);
@@ -200,8 +200,8 @@ namespace Rpg_Dungeon.Systems
         /// <summary>
         /// Helper method to create offhand items with stats
         /// </summary>
-        private static Equipment CreateOffhand(string name, int str = 0, int agi = 0, int intel = 0, 
-                                               int hp = 0, int mana = 0, int stamina = 0, int armor = 0, 
+        private static Equipment CreateOffhand(string name, int str = 0, int agi = 0, int intel = 0,
+                                               int hp = 0, int mana = 0, int stamina = 0, int armor = 0,
                                                int dur = 40, int price = 20)
         {
             return new Equipment(name, EquipmentType.OffHand, dur, price, str, agi, intel, hp, mana, stamina, armor);

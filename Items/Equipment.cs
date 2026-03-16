@@ -24,7 +24,7 @@ namespace Rpg_Dungeon
 
         #region Constructor
 
-        public Equipment(string name, EquipmentType type, int maxDurability, int price = 50, 
+        public Equipment(string name, EquipmentType type, int maxDurability, int price = 50,
                         int str = 0, int agi = 0, int intel = 0, int hp = 0, int mana = 0, int stamina = 0, int armor = 0) : base(name, price)
         {
             MaxDurability = Math.Max(1, maxDurability);

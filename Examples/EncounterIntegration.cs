@@ -81,7 +81,7 @@ namespace Rpg_Dungeon
 
                 // Use area level to determine encounter difficulty
                 int partyAvgLevel = party.Count > 0 ? (int)party.Average(c => c.Level) : 1;
-                
+
                 EncounterDifficulty difficulty;
                 if (area.RecommendedLevel > partyAvgLevel + 3)
                 {
@@ -133,7 +133,7 @@ namespace Rpg_Dungeon
 
             var encounter = new Encounter();
             encounter.GenerateEncounter(party, encounterDifficulty);
-            
+
             return encounter.StartEncounter(party);
         }
 
@@ -297,34 +297,34 @@ namespace Rpg_Dungeon
         public static void Example_ThemedEncounter(List<Character> party, string theme)
         {
             Console.WriteLine($"\n🎭 Themed Encounter: {theme}");
-            
+
             // This is a conceptual example showing how you could extend the system
             // to support themed encounters once MobFactory supports enemy types
-            
+
             var encounter = new Encounter();
-            
+
             switch (theme.ToLower())
             {
                 case "undead":
                     Console.WriteLine("💀 A horde of undead rises!");
                     // encounter.GenerateThemedEncounter(party, EnemyType.Undead, EncounterDifficulty.Normal);
                     break;
-                    
+
                 case "beasts":
                     Console.WriteLine("🐺 Wild beasts attack!");
                     // encounter.GenerateThemedEncounter(party, EnemyType.Beast, EncounterDifficulty.Normal);
                     break;
-                    
+
                 case "bandits":
                     Console.WriteLine("⚔️  A bandit ambush!");
                     // encounter.GenerateThemedEncounter(party, EnemyType.Humanoid, EncounterDifficulty.Normal);
                     break;
-                    
+
                 default:
                     encounter.GenerateEncounter(party, EncounterDifficulty.Normal);
                     break;
             }
-            
+
             encounter.StartEncounter(party);
         }
 

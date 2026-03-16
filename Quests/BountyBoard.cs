@@ -244,7 +244,7 @@ namespace Rpg_Dungeon
 
             Console.Write("\nAccept which bounty? (number or 0 to cancel): ");
             var input = Console.ReadLine() ?? string.Empty;
-            if (!int.TryParse(input, out var idx) || idx < 1 || idx > _activeBounties.Count) 
+            if (!int.TryParse(input, out var idx) || idx < 1 || idx > _activeBounties.Count)
             {
                 Console.WriteLine("Cancelled.");
                 return;
@@ -345,7 +345,7 @@ namespace Rpg_Dungeon
         private Bounty CreateRandomBounty()
         {
             var difficulty = (BountyDifficulty)_random.Next(0, 4);
-            
+
             var targets = new[]
             {
                 ("Rogue Warrior", "A deserter from the army now leads bandits."),
@@ -359,7 +359,7 @@ namespace Rpg_Dungeon
             };
 
             var target = targets[_random.Next(targets.Length)];
-            
+
             int baseGold = difficulty switch
             {
                 BountyDifficulty.Common => _random.Next(40, 80),

@@ -85,19 +85,18 @@ namespace Rpg_Dungeon
             string title = GetLevelTitle(currentLevel);// Get the title for the current level
 
             Console.WriteLine($"\n--- {character.Name} Level Progress ---");// Print a header with the character's name
-            Console.WriteLine($"Level: {currentLevel} ({title})");// Print the current level and title
-            Console.WriteLine($"Experience: {currentXP} / {nextLevelXP}");// Print the current XP and the XP needed for the next level
+            VisualEffects.WriteLineColored($"Level: {currentLevel} ({title})", ConsoleColor.Cyan);// Print the current level and title
 
             if (currentLevel < MaxLevel)// If the character is not at max level, calculate and display the progress percentage towards the next level
             {
                 int xpInCurrentLevel = currentXP - currentLevelXP;
                 int xpNeededForNextLevel = nextLevelXP - currentLevelXP;
-                double progress = xpNeededForNextLevel > 0 ? (double)xpInCurrentLevel / xpNeededForNextLevel * 100.0 : 100.0;
-                Console.WriteLine($"Progress to next level: {progress:F1}%");
+
+                VisualEffects.DrawProgressBarLine(xpInCurrentLevel, xpNeededForNextLevel, 30, "XP");
             }
             else// If the character is at max level, indicate that the max level has been reached
             {
-                Console.WriteLine("MAX LEVEL REACHED!");
+                VisualEffects.WriteLineColored("⭐ MAX LEVEL REACHED! ⭐", ConsoleColor.Magenta);
             }
         }
 

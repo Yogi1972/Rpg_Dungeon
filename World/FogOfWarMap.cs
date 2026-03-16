@@ -195,7 +195,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine("╔════════════════════════════════════════════════════════════════════════════════╗");
                 Console.WriteLine("║                            🗺️  WORLD MAP                                      ║");
                 Console.WriteLine("╚════════════════════════════════════════════════════════════════════════════════╝");
-                
+
                 // Update current location
                 foreach (var node in _mapNodes)
                 {
@@ -392,7 +392,7 @@ namespace Rpg_Dungeon
         }
 
         public int GetDiscoveredCount() => _mapNodes.Count(n => n.IsDiscovered);
-        
+
         public int GetTotalLocations() => _mapNodes.Count;
 
         #endregion

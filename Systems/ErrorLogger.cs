@@ -193,12 +193,12 @@ namespace Rpg_Dungeon
             sb.AppendLine($"[WARNING] {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             sb.AppendLine("───────────────────────────────────────────────────────────────────────────");
             sb.AppendLine($"  Message: {message}");
-            
+
             if (!string.IsNullOrWhiteSpace(additionalContext))
             {
                 sb.AppendLine($"  Context: {additionalContext}");
             }
-            
+
             sb.AppendLine("───────────────────────────────────────────────────────────────────────────");
             sb.AppendLine();
 
@@ -315,7 +315,7 @@ namespace Rpg_Dungeon
                     sb.AppendLine("ERROR LOG ENTRIES (Last 5 files)");
                     sb.AppendLine("═══════════════════════════════════════════════════════════════════════════");
                     sb.AppendLine();
-                    
+
                     foreach (var logFile in logFiles.OrderByDescending(f => new FileInfo(f).LastWriteTime).Take(5))
                     {
                         sb.AppendLine($"--- Log File: {Path.GetFileName(logFile)} ---");
@@ -399,7 +399,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine("║                    ERROR LOG STATISTICS                        ║");
                 Console.WriteLine("╚════════════════════════════════════════════════════════════════╝");
                 Console.WriteLine();
-                
+
                 if (logFiles.Length == 0)
                 {
                     Console.WriteLine("✅ No error logs found - your game is running smoothly!");
@@ -409,7 +409,7 @@ namespace Rpg_Dungeon
                     Console.WriteLine($"📁 Total log files: {logFiles.Length}");
                     Console.WriteLine($"📂 Log directory: {LogDirectory}");
                     Console.WriteLine();
-                    
+
                     foreach (var logFile in logFiles)
                     {
                         var fileInfo = new FileInfo(logFile);

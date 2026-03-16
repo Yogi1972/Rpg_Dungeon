@@ -95,7 +95,7 @@ namespace Rpg_Dungeon
                     DialogueOptions.Add("What secrets do you know?");
                     break;
             }
-            
+
             DialogueOptions.Add("Farewell.");
         }
 
@@ -138,13 +138,13 @@ namespace Rpg_Dungeon
                 else if (int.TryParse(choice, out int dialogueIndex) && dialogueIndex > 0 && dialogueIndex <= DialogueOptions.Count)
                 {
                     string selectedDialogue = DialogueOptions[dialogueIndex - 1];
-                    
+
                     if (selectedDialogue == "Farewell.")
                     {
                         Console.WriteLine($"\n{Name}: \"Safe travels, adventurer!\"");
                         return;
                     }
-                    
+
                     RespondToDialogue(selectedDialogue, mainStoryline);
                 }
                 else
@@ -325,7 +325,7 @@ namespace Rpg_Dungeon
         private void OfferQuests(List<Character> party, Journal journal)
         {
             Console.WriteLine($"\n{Name} has the following quests available:");
-            
+
             for (int i = 0; i < AvailableQuests.Count; i++)
             {
                 var quest = AvailableQuests[i];
@@ -337,7 +337,7 @@ namespace Rpg_Dungeon
 
             Console.Write("\nAccept which quest? (0 to cancel): ");
             var choice = Console.ReadLine()?.Trim() ?? "";
-            
+
             if (int.TryParse(choice, out int questIndex) && questIndex > 0 && questIndex <= AvailableQuests.Count)
             {
                 var selectedQuest = AvailableQuests[questIndex - 1];
@@ -597,8 +597,8 @@ namespace Rpg_Dungeon
         {
             var npcs = new List<NPC>();
 
-            var elderMorris = new NPC("Elder Morris", NPCType.Elder, 
-                "The wise elder of Havenbrook, keeper of ancient knowledge.", 
+            var elderMorris = new NPC("Elder Morris", NPCType.Elder,
+                "The wise elder of Havenbrook, keeper of ancient knowledge.",
                 "Havenbrook", true, 0);
             elderMorris.DialogueOptions.Add("Tell me about the ancient prophecy.");
             npcs.Add(elderMorris);
@@ -1118,7 +1118,7 @@ namespace Rpg_Dungeon
         {
             var firstNames = new[] { "John", "Sarah", "Marcus", "Elena", "Thomas", "Lisa", "Robert", "Anna" };
             var lastNames = new[] { "Smith", "Ironwood", "Brightstone", "Shadowend", "Goldleaf", "Stormwind" };
-            
+
             return type switch
             {
                 NPCType.Elder => $"Elder {lastNames[_random.Next(lastNames.Length)]}",

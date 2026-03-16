@@ -17,17 +17,17 @@ namespace Rpg_Dungeon
         public static void Example_BasicEncounter(List<Character> party)
         {
             Console.WriteLine("=== Basic Encounter Example ===");
-            
+
             // Create and generate a normal difficulty encounter
             var encounter = new Encounter();
             encounter.GenerateEncounter(party, EncounterDifficulty.Normal);
-            
+
             // The encounter automatically scales enemy count based on party size
             // For a party of 4, you'll typically get 3-4 enemies
             // For a party of 2, you'll get 2 enemies
-            
+
             bool victory = encounter.StartEncounter(party);
-            
+
             if (victory)
             {
                 Console.WriteLine("Your party emerged victorious!");
@@ -44,10 +44,10 @@ namespace Rpg_Dungeon
         public static void Example_QuickEncounter(List<Character> party)
         {
             Console.WriteLine("=== Quick Encounter Example ===");
-            
+
             // One-line encounter generation and execution
             bool victory = Encounter.QuickEncounter(party, EncounterDifficulty.Hard);
-            
+
             Console.WriteLine(victory ? "Victory!" : "Defeat!");
         }
 
@@ -57,17 +57,17 @@ namespace Rpg_Dungeon
         public static void Example_DifficultyScaling(List<Character> party)
         {
             Console.WriteLine("=== Difficulty Scaling Example ===");
-            
+
             // Easy encounter - fewer enemies, lower level
             var easyEncounter = new Encounter();
             easyEncounter.GenerateEncounter(party, EncounterDifficulty.Easy);
             Console.WriteLine($"Easy: {easyEncounter.TotalEnemyCount} enemies");
-            
+
             // Hard encounter - more enemies or higher level
             var hardEncounter = new Encounter();
             hardEncounter.GenerateEncounter(party, EncounterDifficulty.Hard);
             Console.WriteLine($"Hard: {hardEncounter.TotalEnemyCount} enemies");
-            
+
             // Elite encounter - fewer but much stronger enemies
             var eliteEncounter = new Encounter();
             eliteEncounter.GenerateEncounter(party, EncounterDifficulty.Elite);
@@ -80,16 +80,16 @@ namespace Rpg_Dungeon
         public static void Example_BossEncounter(List<Character> party)
         {
             Console.WriteLine("=== Boss Encounter Example ===");
-            
+
             var encounter = new Encounter();
             encounter.GenerateBossEncounter(party, "Ancient Dragon");
-            
+
             // Boss encounters have 1 boss + minions based on party size
             // Party of 4 = 1 boss + 2 minions
             // Party of 2 = 1 boss + 1 minion
-            
+
             bool victory = encounter.StartEncounter(party);
-            
+
             if (victory)
             {
                 Console.WriteLine("🏆 Boss defeated! Epic victory!");
@@ -102,10 +102,10 @@ namespace Rpg_Dungeon
         public static void Example_RandomEncounter(List<Character> party, int areaLevel)
         {
             Console.WriteLine("=== Random Encounter Example ===");
-            
+
             // Random chance of easy/normal/hard based on area
             bool victory = Encounter.RandomEncounter(party, areaLevel);
-            
+
             Console.WriteLine(victory ? "Encounter survived!" : "Party defeated!");
         }
 
@@ -119,30 +119,30 @@ namespace Rpg_Dungeon
         public static void Example_DungeonRoomEncounter(List<Character> party, int dungeonLevel, RoomType roomType)
         {
             Console.WriteLine("=== Dungeon Room Encounter Example ===");
-            
+
             var encounter = new Encounter();
-            
+
             switch (roomType)
             {
                 case RoomType.Combat:
                     encounter.GenerateEncounter(party, EncounterDifficulty.Normal);
                     break;
-                    
+
                 case RoomType.Elite:
                     encounter.GenerateEncounter(party, EncounterDifficulty.Elite);
                     break;
-                    
+
                 case RoomType.Boss:
                     encounter.GenerateBossEncounter(party);
                     break;
-                    
+
                 default:
                     Console.WriteLine("No combat in this room.");
                     return;
             }
-            
+
             bool victory = encounter.StartEncounter(party);
-            
+
             if (!victory)
             {
                 Console.WriteLine("Retreat to safety!");
@@ -155,14 +155,14 @@ namespace Rpg_Dungeon
         public static void Example_PartyCompositionScaling(List<Character> party)
         {
             Console.WriteLine("=== Party Composition Example ===");
-            
+
             // The Encounter class automatically analyzes:
             // - Party size (1-4 members)
             // - Average party level
             // - Total party power (stats + equipment)
-            
+
             Console.WriteLine($"Party has {party.Count} member(s)");
-            
+
             if (party.Count == 1)
             {
                 // Solo player: Encounter generates 1-2 enemies at appropriate level
@@ -185,22 +185,22 @@ namespace Rpg_Dungeon
         public static void Example_ProgressiveDifficulty(List<Character> party)
         {
             Console.WriteLine("=== Progressive Difficulty Example ===");
-            
+
             // Warm-up encounter
             Console.WriteLine("Wave 1 - Easy:");
             Encounter.QuickEncounter(party, EncounterDifficulty.Easy);
-            
+
             // Give party a moment
             Console.WriteLine("\nPress Enter for next wave...");
             Console.ReadLine();
-            
+
             // Standard encounter
             Console.WriteLine("Wave 2 - Normal:");
             Encounter.QuickEncounter(party, EncounterDifficulty.Normal);
-            
+
             Console.WriteLine("\nPress Enter for final wave...");
             Console.ReadLine();
-            
+
             // Challenging final wave
             Console.WriteLine("Wave 3 - Hard:");
             Encounter.QuickEncounter(party, EncounterDifficulty.Hard);

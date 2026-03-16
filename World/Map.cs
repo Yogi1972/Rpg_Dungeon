@@ -47,8 +47,8 @@ namespace Rpg_Dungeon
 
         #region Map Navigation
 
-        public void OpenMap(List<Character> party, QuestBoard questBoard, BountyBoard bountyBoard, 
-                           AchievementTracker achievementTracker, Journal journal, MainStoryline mainStoryline, 
+        public void OpenMap(List<Character> party, QuestBoard questBoard, BountyBoard bountyBoard,
+                           AchievementTracker achievementTracker, Journal journal, MainStoryline mainStoryline,
                            NPCManager npcManager, FogOfWarMap fogOfWarMap)
         {
             while (true)
@@ -79,9 +79,9 @@ namespace Rpg_Dungeon
                     string status = area.IsUnlocked ? "✓" : "🔒";
                     string current = area == _currentArea ? " <- YOU ARE HERE" : "";
                     string levelInfo = area.IsUnlocked ? $"(Lv {area.RecommendedLevel})" : $"[Requires Lv {area.RecommendedLevel}]";
-                    
+
                     Console.WriteLine($"{status} {i + 1}) {area.Name} {levelInfo}{current}");
-                    
+
                     if (area.IsUnlocked)
                     {
                         int dungeonCount = area.Dungeons.Count;
@@ -156,7 +156,7 @@ namespace Rpg_Dungeon
             }
 
             var selectedArea = unlockedAreas[idx - 1];
-            
+
             if (selectedArea == _currentArea)
             {
                 Console.WriteLine("You are already in this area!");
@@ -177,7 +177,7 @@ namespace Rpg_Dungeon
         private void ViewAreaDetails()
         {
             Console.WriteLine("\n=== View Area Details ===");
-            
+
             for (int i = 0; i < _areas.Count; i++)
             {
                 var area = _areas[i];
@@ -199,7 +199,7 @@ namespace Rpg_Dungeon
             }
 
             var selectedArea = _areas[idx - 1];
-            
+
             if (!selectedArea.IsUnlocked)
             {
                 Console.WriteLine($"\n🔒 This area is locked. Reach level {selectedArea.RecommendedLevel} to unlock it.");

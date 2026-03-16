@@ -527,7 +527,7 @@ namespace Rpg_Dungeon
 
             Console.WriteLine("\n=== DUELING ARENA ===");
             Console.WriteLine("⚔️ PLAYER VS PLAYER COMBAT ⚔️");
-            
+
             Console.WriteLine("\nSelect Player 1 (challenger):");
             for (int i = 0; i < _players.Count; i++)
             {
