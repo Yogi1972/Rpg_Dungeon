@@ -9,39 +9,48 @@ namespace Rpg_Dungeon.Systems
     /// <summary>
     /// Message types for network communication
     /// </summary>
-    public enum NetworkMessageType
+    internal enum NetworkMessageType
     {
         // Connection
         PlayerJoin,
         PlayerLeave,
         LobbyUpdate,
         GameStart,
-        
+
+        // Reconnection
+        Reconnect,
+        ReconnectSuccess,
+        ReconnectFailed,
+
         // Game State
         TurnStart,
         TurnEnd,
         CombatAction,
         CombatResult,
         GameStateSync,
-        
+        FullStateSync,
+
         // Chat
         ChatMessage,
-        
+
         // System
         Ping,
         Pong,
+        Heartbeat,
         Disconnect
     }
 
     /// <summary>
     /// Network message for client-server communication
     /// </summary>
-    public class NetworkMessage
+    internal class NetworkMessage
     {
         public NetworkMessageType Type { get; set; }
         public string SenderId { get; set; }
         public string Data { get; set; }
         public DateTime Timestamp { get; set; }
+        public string? SessionId { get; set; }
+        public string? ReconnectToken { get; set; }
 
         public NetworkMessage()
         {
@@ -89,7 +98,7 @@ namespace Rpg_Dungeon.Systems
     /// <summary>
     /// Player join data
     /// </summary>
-    public class PlayerJoinData
+    internal class PlayerJoinData
     {
         public string PlayerName { get; set; } = string.Empty;
         public string CharacterName { get; set; } = string.Empty;
@@ -99,7 +108,7 @@ namespace Rpg_Dungeon.Systems
     /// <summary>
     /// Lobby state data
     /// </summary>
-    public class LobbyStateData
+    internal class LobbyStateData
     {
         public List<PlayerJoinData> Players { get; set; } = new();
         public int MaxPlayers { get; set; } = 4;
@@ -109,7 +118,7 @@ namespace Rpg_Dungeon.Systems
     /// <summary>
     /// Combat action data
     /// </summary>
-    public class CombatActionData
+    internal class CombatActionData
     {
         public string CharacterName { get; set; } = string.Empty;
         public string ActionType { get; set; } = string.Empty; // "Attack", "Ability", "Item", "Stance", "Pass"
@@ -122,7 +131,7 @@ namespace Rpg_Dungeon.Systems
     /// <summary>
     /// Combat result data
     /// </summary>
-    public class CombatResultData
+    internal class CombatResultData
     {
         public string Message { get; set; } = string.Empty;
         public int Damage { get; set; } = 0;
@@ -134,11 +143,38 @@ namespace Rpg_Dungeon.Systems
     /// <summary>
     /// Turn state data
     /// </summary>
-    public class TurnStateData
+    internal class TurnStateData
     {
         public string CurrentPlayer { get; set; } = string.Empty;
         public int TurnNumber { get; set; } = 0;
         public int MobHp { get; set; } = 0;
         public int MobMaxHp { get; set; } = 0;
+    }
+
+    /// <summary>
+    /// Game state sync data for reconnection
+    /// </summary>
+    internal class GameStateSyncData
+    {
+        public string SessionId { get; set; } = string.Empty;
+        public List<PlayerStateData> Players { get; set; } = new();
+        public string CurrentLocation { get; set; } = string.Empty;
+        public int TurnNumber { get; set; } = 0;
+        public bool InCombat { get; set; } = false;
+    }
+
+    /// <summary>
+    /// Individual player state for sync
+    /// </summary>
+    internal class PlayerStateData
+    {
+        public string PlayerName { get; set; } = string.Empty;
+        public string CharacterName { get; set; } = string.Empty;
+        public int Health { get; set; } = 0;
+        public int MaxHealth { get; set; } = 0;
+        public int Mana { get; set; } = 0;
+        public int MaxMana { get; set; } = 0;
+        public int Gold { get; set; } = 0;
+        public bool IsConnected { get; set; } = true;
     }
 }

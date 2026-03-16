@@ -227,5 +227,30 @@ namespace Rpg_Dungeon
             }
             return descriptions;
         }
+
+        /// <summary>
+        /// Create a default party for quick multiplayer start
+        /// </summary>
+        public static List<Character> CreateDefaultParty()
+        {
+            var party = new List<Character>
+            {
+                new Warrior("Warrior"),
+                new Mage("Mage"),
+                new Rogue("Rogue"),
+                new Priest("Priest")
+            };
+
+            // Apply default race and starting equipment
+            foreach (var character in party)
+            {
+                character.ApplyRaceBonuses(new Human());
+                character.Inventory.AddGold(50);
+                StartingEquipmentGenerator.GiveStartingEquipment(character);
+                character.InitializeAbilities();
+            }
+
+            return party;
+        }
     }
 }
