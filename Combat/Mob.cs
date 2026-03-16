@@ -15,6 +15,7 @@ namespace Rpg_Dungeon
         public int Agility { get; }
         public int Intelligence { get; }
         public int ArmorRating { get; }
+        public EnemyAI AI { get; private set; }
 
         private readonly int _goldMin;
         private readonly int _goldMax;
@@ -24,7 +25,7 @@ namespace Rpg_Dungeon
 
         #region Constructor
 
-        public Mob(string name, int hp, int str, int agi, int intel, int goldMin, int goldMax, List<(Item, double)> lootTable, int level = 1, int armorRating = 0)
+        public Mob(string name, int hp, int str, int agi, int intel, int goldMin, int goldMax, List<(Item, double)> lootTable, int level = 1, int armorRating = 0, EnemyAI? ai = null)
         {
             Name = name;
             Level = Math.Max(1, level);
@@ -36,6 +37,9 @@ namespace Rpg_Dungeon
             _goldMin = Math.Max(0, goldMin);
             _goldMax = Math.Max(_goldMin, goldMax);
             _lootTable = lootTable ?? new List<(Item, double)>();
+
+            // Initialize AI - auto-generate if not provided
+            AI = ai ?? EnemyAI.CreateForMob(this);
         }
 
         #endregion
@@ -58,7 +62,8 @@ namespace Rpg_Dungeon
 
             var lootCopy = _lootTable.Select(t => (t.item, t.chance)).ToList();
 
-            return new Mob(Name, hp, str, agi, intel, goldMin, goldMax, lootCopy, lvl, ar);
+            // Preserve AI behavior when scaling
+            return new Mob(Name, hp, str, agi, intel, goldMin, goldMax, lootCopy, lvl, ar, AI);
         }
 
         public Mob ScaleForLevel(int dungeonLevel)

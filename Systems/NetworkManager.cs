@@ -14,7 +14,7 @@ namespace Rpg_Dungeon.Systems
     /// <summary>
     /// Manages network connections for LAN multiplayer
     /// </summary>
-    public class NetworkManager
+    internal class NetworkManager
     {
         #region Fields
 
@@ -25,8 +25,23 @@ namespace Rpg_Dungeon.Systems
         private bool _isConnected;
         private string _playerId;
         private Thread? _receiveThread;
+        private Thread? _heartbeatThread;
         private Queue<NetworkMessage> _messageQueue;
         private readonly object _queueLock = new();
+
+        // Reconnection support
+        private string _sessionId;
+        private string _reconnectToken;
+        private DateTime _lastHeartbeat;
+        private bool _attemptingReconnect;
+        private int _reconnectAttempts;
+        private const int MAX_RECONNECT_ATTEMPTS = 5;
+        private const int RECONNECT_DELAY_MS = 3000;
+        private const int HEARTBEAT_INTERVAL_MS = 5000;
+        private const int HEARTBEAT_TIMEOUT_MS = 15000;
+
+        // Connected clients (for host)
+        private readonly Dictionary<string, ClientConnection> _connectedClients = new();
 
         public const int DEFAULT_PORT = 7777;
 
@@ -37,6 +52,9 @@ namespace Rpg_Dungeon.Systems
         public bool IsHost => _isHost;
         public bool IsConnected => _isConnected;
         public string PlayerId => _playerId;
+        public string SessionId => _sessionId;
+        public string ReconnectToken => _reconnectToken;
+        public bool IsReconnecting => _attemptingReconnect;
 
         #endregion
 
@@ -54,7 +72,12 @@ namespace Rpg_Dungeon.Systems
         public NetworkManager()
         {
             _playerId = Guid.NewGuid().ToString();
+            _sessionId = Guid.NewGuid().ToString();
+            _reconnectToken = Guid.NewGuid().ToString();
             _messageQueue = new Queue<NetworkMessage>();
+            _lastHeartbeat = DateTime.UtcNow;
+            _attemptingReconnect = false;
+            _reconnectAttempts = 0;
         }
 
         #endregion
@@ -74,11 +97,15 @@ namespace Rpg_Dungeon.Systems
                 _isConnected = true;
 
                 Console.WriteLine($"✅ Server started on port {port}");
+                Console.WriteLine($"📡 Session ID: {_sessionId}");
                 Console.WriteLine($"📡 Local IP: {GetLocalIPAddress()}");
                 Console.WriteLine("⏳ Waiting for players to connect...");
 
                 // Start accepting clients in background
                 Task.Run(() => AcceptClients());
+
+                // Start heartbeat monitoring
+                StartHeartbeat();
 
                 return true;
             }
@@ -317,6 +344,7 @@ namespace Rpg_Dungeon.Systems
                 _stream?.Close();
                 _client?.Close();
                 _server?.Stop();
+                _heartbeatThread?.Join(1000);
 
                 Console.WriteLine("🔌 Disconnected from network");
             }
@@ -327,12 +355,251 @@ namespace Rpg_Dungeon.Systems
         }
 
         #endregion
+
+        #region Reconnection Support
+
+        /// <summary>
+        /// Attempt to reconnect to the host
+        /// </summary>
+        public bool AttemptReconnect(string ipAddress, int port = DEFAULT_PORT)
+        {
+            _attemptingReconnect = true;
+            _reconnectAttempts = 0;
+
+            Console.WriteLine($"\n🔄 Attempting to reconnect to {ipAddress}:{port}...");
+
+            while (_reconnectAttempts < MAX_RECONNECT_ATTEMPTS)
+            {
+                _reconnectAttempts++;
+                Console.WriteLine($"Attempt {_reconnectAttempts}/{MAX_RECONNECT_ATTEMPTS}...");
+
+                try
+                {
+                    _client = new TcpClient();
+                    _client.Connect(ipAddress, port);
+                    _stream = _client.GetStream();
+
+                    // Send reconnect message with token
+                    var reconnectMsg = new NetworkMessage(NetworkMessageType.Reconnect, _playerId, "")
+                    {
+                        SessionId = _sessionId,
+                        ReconnectToken = _reconnectToken
+                    };
+                    SendMessage(reconnectMsg);
+
+                    // Wait for reconnect response
+                    Thread.Sleep(1000);
+                    var messages = GetPendingMessages();
+                    bool reconnectSuccess = messages.Any(m => m.Type == NetworkMessageType.ReconnectSuccess);
+
+                    if (reconnectSuccess)
+                    {
+                        _isConnected = true;
+                        _attemptingReconnect = false;
+                        _reconnectAttempts = 0;
+
+                        // Restart receive thread
+                        _receiveThread = new Thread(ReceiveMessages);
+                        _receiveThread.IsBackground = true;
+                        _receiveThread.Start();
+
+                        // Restart heartbeat
+                        StartHeartbeat();
+
+                        Console.WriteLine("✅ Reconnected successfully!");
+                        OnPlayerConnected?.Invoke(_playerId);
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Reconnect attempt {_reconnectAttempts} failed: {ex.Message}");
+                }
+
+                if (_reconnectAttempts < MAX_RECONNECT_ATTEMPTS)
+                {
+                    Console.WriteLine($"⏳ Waiting {RECONNECT_DELAY_MS / 1000} seconds before next attempt...");
+                    Thread.Sleep(RECONNECT_DELAY_MS);
+                }
+            }
+
+            _attemptingReconnect = false;
+            Console.WriteLine($"❌ Failed to reconnect after {MAX_RECONNECT_ATTEMPTS} attempts");
+            OnError?.Invoke("Reconnection failed - maximum attempts reached");
+            return false;
+        }
+
+        /// <summary>
+        /// Handle a reconnection request (host side)
+        /// </summary>
+        public bool HandleReconnectRequest(NetworkMessage message)
+        {
+            if (!_isHost) return false;
+
+            try
+            {
+                // Verify session ID and reconnect token
+                if (message.SessionId == _sessionId && !string.IsNullOrEmpty(message.ReconnectToken))
+                {
+                    // Find the disconnected client
+                    if (_connectedClients.TryGetValue(message.SenderId, out var client))
+                    {
+                        // Verify reconnect token
+                        if (client.ReconnectToken == message.ReconnectToken)
+                        {
+                            client.IsConnected = true;
+                            client.LastHeartbeat = DateTime.UtcNow;
+
+                            // Send success message
+                            var response = new NetworkMessage(NetworkMessageType.ReconnectSuccess, _playerId, "")
+                            {
+                                SessionId = _sessionId
+                            };
+                            SendMessage(response);
+
+                            Console.WriteLine($"✅ Player {message.SenderId} reconnected!");
+                            OnPlayerConnected?.Invoke(message.SenderId);
+                            return true;
+                        }
+                    }
+                }
+
+                // Send failure message
+                var failMsg = new NetworkMessage(NetworkMessageType.ReconnectFailed, _playerId, "Invalid session or token");
+                SendMessage(failMsg);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                OnError?.Invoke($"Error handling reconnect: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Start heartbeat monitoring
+        /// </summary>
+        private void StartHeartbeat()
+        {
+            _heartbeatThread = new Thread(() =>
+            {
+                while (_isConnected)
+                {
+                    try
+                    {
+                        if (_isHost)
+                        {
+                            // Check all clients for timeout
+                            foreach (var client in _connectedClients.Values)
+                            {
+                                var timeSinceHeartbeat = DateTime.UtcNow - client.LastHeartbeat;
+                                if (timeSinceHeartbeat.TotalMilliseconds > HEARTBEAT_TIMEOUT_MS)
+                                {
+                                    Console.WriteLine($"⚠️ Client {client.PlayerId} timed out (no heartbeat)");
+                                    client.IsConnected = false;
+                                    OnPlayerDisconnected?.Invoke(client.PlayerId);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Send heartbeat to host
+                            var heartbeat = new NetworkMessage(NetworkMessageType.Heartbeat, _playerId, "")
+                            {
+                                SessionId = _sessionId
+                            };
+                            SendMessage(heartbeat);
+
+                            // Check if we've lost connection
+                            var timeSinceHeartbeat = DateTime.UtcNow - _lastHeartbeat;
+                            if (timeSinceHeartbeat.TotalMilliseconds > HEARTBEAT_TIMEOUT_MS)
+                            {
+                                Console.WriteLine("⚠️ Connection lost - heartbeat timeout");
+                                _isConnected = false;
+                                OnError?.Invoke("Connection lost");
+                                break;
+                            }
+                        }
+
+                        Thread.Sleep(HEARTBEAT_INTERVAL_MS);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (_isConnected)
+                        {
+                            OnError?.Invoke($"Heartbeat error: {ex.Message}");
+                        }
+                        break;
+                    }
+                }
+            });
+            _heartbeatThread.IsBackground = true;
+            _heartbeatThread.Start();
+        }
+
+        /// <summary>
+        /// Update heartbeat timestamp
+        /// </summary>
+        public void UpdateHeartbeat(string playerId)
+        {
+            _lastHeartbeat = DateTime.UtcNow;
+
+            if (_isHost && _connectedClients.TryGetValue(playerId, out var client))
+            {
+                client.LastHeartbeat = DateTime.UtcNow;
+            }
+        }
+
+        #endregion
+
+        #region Game State Sync
+
+        /// <summary>
+        /// Sync full game state (for reconnecting players)
+        /// </summary>
+        public void SyncGameState(GameStateSyncData gameState)
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(gameState);
+            var message = new NetworkMessage(NetworkMessageType.FullStateSync, _playerId, json)
+            {
+                SessionId = _sessionId
+            };
+            SendMessage(message);
+        }
+
+        /// <summary>
+        /// Request game state sync (after reconnect)
+        /// </summary>
+        public void RequestGameStateSync()
+        {
+            var message = new NetworkMessage(NetworkMessageType.GameStateSync, _playerId, "REQUEST")
+            {
+                SessionId = _sessionId
+            };
+            SendMessage(message);
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Client connection info for host tracking
+    /// </summary>
+    internal class ClientConnection
+    {
+        public string PlayerId { get; set; } = string.Empty;
+        public TcpClient? Client { get; set; }
+        public NetworkStream? Stream { get; set; }
+        public DateTime LastHeartbeat { get; set; }
+        public bool IsConnected { get; set; }
+        public string ReconnectToken { get; set; } = string.Empty;
+        public string PlayerName { get; set; } = string.Empty;
     }
 
     /// <summary>
     /// Network lobby manager for pre-game setup
     /// </summary>
-    public class NetworkLobby
+    internal class NetworkLobby
     {
         private NetworkManager _networkManager;
         private LobbyStateData _lobbyState;

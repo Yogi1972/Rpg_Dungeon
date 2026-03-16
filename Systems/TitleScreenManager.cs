@@ -1,6 +1,8 @@
 using Night.Systems;
+using Night.Characters;
 using Rpg_Dungeon.Systems;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -568,53 +570,14 @@ namespace Rpg_Dungeon
 
         private static void ShowNetworkMultiplayerMenu()
         {
-            while (true)
-            {
-                Console.Clear();
-                Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
-                Console.WriteLine("║                   NETWORK MULTIPLAYER (LAN)                      ║");
-                Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
-                Console.WriteLine();
-                Console.WriteLine("  🌐 Connect with friends over your local network!");
-                Console.WriteLine("  📡 One player hosts, others join using IP address");
-                Console.WriteLine();
-                Console.WriteLine("  1) 🏠 Host a Game (Create Server)");
-                Console.WriteLine("  2) 🔌 Join a Game (Connect to Server)");
-                Console.WriteLine("  3) 📋 Show My IP Address");
-                Console.WriteLine("  4) ❓ Network Multiplayer Help");
-                Console.WriteLine("  0) ⬅️  Return to Main Menu");
-                Console.WriteLine();
-                Console.Write("Choose an option: ");
+            // Load current game party (if available) for multiplayer
+            var party = new List<Night.Characters.Character>();
 
-                var choice = Console.ReadLine() ?? string.Empty;
+            // Try to load last saved game for multiplayer
+            Console.WriteLine("\n💡 Loading character data for multiplayer...");
 
-                switch (choice.Trim())
-                {
-                    case "1":
-                        NetworkMultiplayerManager.HostGame();
-                        return;
-
-                    case "2":
-                        NetworkMultiplayerManager.JoinGame();
-                        return;
-
-                    case "3":
-                        ShowIPAddress();
-                        break;
-
-                    case "4":
-                        ShowNetworkHelp();
-                        break;
-
-                    case "0":
-                        return;
-
-                    default:
-                        Console.WriteLine("\n❌ Invalid selection. Please choose a valid option.");
-                        Thread.Sleep(1000);
-                        break;
-                }
-            }
+            // Use the comprehensive new multiplayer menu
+            MultiplayerMenu.Show(party.Count > 0 ? party : GameInitializer.CreateDefaultParty());
         }
 
         private static void ShowIPAddress()
