@@ -248,8 +248,6 @@ namespace Rpg_Dungeon.Systems
                     {
                         Console.WriteLine();
                         Console.WriteLine("  🚧 You're running a pre-release version.");
-                        Console.WriteLine("  💡 Check the dev repository for latest changes:");
-                        Console.WriteLine($"     {VersionControl.GitHubDevUrl}");
                     }
                 }
             }
@@ -261,20 +259,12 @@ namespace Rpg_Dungeon.Systems
             }
 
             Console.WriteLine();
-            Console.WriteLine("  🔗 GitHub Repositories:");
-            Console.WriteLine($"     📦 Release: {VersionControl.GitHubReleaseUrl}");
-            Console.WriteLine($"     🔧 Development: {VersionControl.GitHubDevUrl}");
-            Console.WriteLine();
-            Console.WriteLine("  💡 Press 'R' for releases, 'D' for dev repo, or Enter to return...");
+            Console.WriteLine("  💡 Press Enter to return or 'R' to view releases on GitHub...");
 
             var finalKey = Console.ReadKey(true);
             if (finalKey.KeyChar == 'R' || finalKey.KeyChar == 'r')
             {
                 OpenGitHubReleases();
-            }
-            else if (finalKey.KeyChar == 'D' || finalKey.KeyChar == 'd')
-            {
-                OpenGitHubDev();
             }
         }
 
@@ -556,29 +546,5 @@ namespace Rpg_Dungeon.Systems
             return scriptPath;
         }
 
-        /// <summary>
-        /// Open the GitHub development repository in the default browser
-        /// </summary>
-        public static void OpenGitHubDev()
-        {
-            try
-            {
-                Console.WriteLine();
-                Console.WriteLine("  🌐 Opening GitHub development repository...");
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = VersionControl.GitHubDevUrl,
-                    UseShellExecute = true
-                });
-                System.Threading.Thread.Sleep(1000);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"  ❌ Failed to open browser: {ex.Message}");
-                Console.WriteLine($"  📋 Copy this URL manually: {VersionControl.GitHubDevUrl}");
-                ErrorLogger.LogWarning($"Failed to open GitHub URL: {ex.Message}", "Browser launch failed");
-                System.Threading.Thread.Sleep(2000);
             }
         }
-    }
-}

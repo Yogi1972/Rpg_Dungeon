@@ -57,83 +57,221 @@ namespace Rpg_Dungeon
         {
             Console.Clear();
 
-            VisualEffects.WriteLineColored("\n=== COMBAT TUTORIAL ===\n", ConsoleColor.Cyan);
+            VisualEffects.WriteLineColored("\n╔═══════════════════════════════════════════════════════════╗", ConsoleColor.Cyan);
+            VisualEffects.WriteLineColored("║                  COMBAT TUTORIAL                          ║", ConsoleColor.Cyan);
+            VisualEffects.WriteLineColored("╚═══════════════════════════════════════════════════════════╝\n", ConsoleColor.Cyan);
 
-            Console.WriteLine("You face a Goblin Raider!");
-            Console.WriteLine("In combat, you'll roll a d20 (1-20) to determine success.");
-            Console.WriteLine("Critical hits (roll 20) deal double damage!");
-            Console.WriteLine("Critical fails (roll 1) miss completely!");
+            Console.WriteLine("🎯 Combat Basics:");
+            Console.WriteLine("  • Roll d20 to attack (higher = better)");
+            Console.WriteLine("  • Critical Hit (20) = Double damage! ⚡");
+            Console.WriteLine("  • Critical Fail (1) = Complete miss! 💨");
+            Console.WriteLine("  • Use abilities strategically");
             Console.WriteLine();
-
-            VisualEffects.WriteLineColored("Enemy: Goblin Raider [HP: 15]", ConsoleColor.Red);
-            Console.WriteLine("Your Stats: [HP: 50] [Attack: +5]");
-            Console.WriteLine();
-
-            // Simulate a combat turn
-            Console.WriteLine("Press Enter to attack...");
-            Console.ReadLine();
 
             var rng = new Random();
-            int roll = rng.Next(10, 21); // Guarantee a hit for tutorial
-            int damage = 8;
 
-            if (roll == 20)
+            // Enhanced tutorial enemy
+            string enemyName = "Goblin Raider";
+            int enemyMaxHp = 30;
+            int enemyHp = enemyMaxHp;
+            int enemyAttack = 4;
+            int playerMaxHp = 50;
+            int playerHp = playerMaxHp;
+            int playerAttack = 6;
+            bool enemyIsStunned = false;
+
+            // Combat loop
+            int turnCount = 0;
+            while (enemyHp > 0 && playerHp > 0)
             {
-                VisualEffects.ShowCriticalHitEffect();
-                Console.WriteLine($" {VisualEffects.GetRandomCritMessage()}");
-                damage = 16;
-            }
+                turnCount++;
+                Console.WriteLine($"\n═══ Turn {turnCount} ═══");
 
-            Console.WriteLine($"\nYou roll d20: {roll} (+5 attack) = {roll + 5}");
-            Thread.Sleep(500);
+                // Show status
+                VisualEffects.WriteLineColored($"⚔️  {enemyName}", ConsoleColor.Red);
+                Console.WriteLine($"    HP: [{new string('█', (int)((double)enemyHp / enemyMaxHp * 20))}{new string('░', 20 - (int)((double)enemyHp / enemyMaxHp * 20))}] {enemyHp}/{enemyMaxHp}");
+                if (enemyIsStunned) VisualEffects.WriteColored("    💫 STUNNED!\n", ConsoleColor.Yellow);
 
-            VisualEffects.WriteDamage($"⚔️  You strike for {damage} damage!\n");
-            Thread.Sleep(500);
+                Console.WriteLine();
+                VisualEffects.WriteLineColored("💚 Your Stats", ConsoleColor.Green);
+                Console.WriteLine($"    HP: [{new string('█', (int)((double)playerHp / playerMaxHp * 20))}{new string('░', 20 - (int)((double)playerHp / playerMaxHp * 20))}] {playerHp}/{playerMaxHp}");
+                Console.WriteLine();
 
-            int goblinHp = 15 - damage;
+                // Player turn
+                Console.WriteLine("Choose your action:");
+                Console.WriteLine("  [1] ⚔️  Attack");
+                Console.WriteLine("  [2] 💥 Power Strike (costs 5 HP, +5 damage)");
+                Console.WriteLine("  [3] 🛡️  Defensive Stance (reduce next damage by 50%)");
+                if (turnCount > 1) Console.WriteLine("  [4] 💫 Stun Attack (50% chance to skip enemy turn)");
 
-            if (goblinHp > 0)
-            {
-                VisualEffects.WriteInfo($"Goblin HP: {goblinHp}/15\n");
-                Console.WriteLine("\nThe goblin strikes back!");
+                Console.Write("\nYour choice: ");
+                string choice = Console.ReadLine()?.Trim() ?? "1";
+
+                int damage = 0;
+                bool isDefending = false;
+
+                Console.WriteLine();
+
+                switch (choice)
+                {
+                    case "1": // Normal attack
+                        int roll = rng.Next(1, 21);
+                        Console.WriteLine($"🎲 You roll d20: {roll}");
+                        Thread.Sleep(400);
+
+                        if (roll == 1)
+                        {
+                            VisualEffects.WriteLineColored("💨 CRITICAL MISS! Your attack goes wide!", ConsoleColor.DarkGray);
+                        }
+                        else if (roll == 20)
+                        {
+                            VisualEffects.ShowCriticalHitEffect();
+                            damage = (playerAttack + roll) * 2;
+                            VisualEffects.WriteDamage($"💥 CRITICAL HIT! You deal {damage} damage!\n");
+                        }
+                        else
+                        {
+                            damage = playerAttack + (roll / 2);
+                            VisualEffects.WriteDamage($"⚔️  You strike for {damage} damage!\n");
+                        }
+                        break;
+
+                    case "2": // Power Strike
+                        if (playerHp > 5)
+                        {
+                            playerHp -= 5;
+                            int powerRoll = rng.Next(1, 21);
+                            damage = playerAttack + powerRoll + 5;
+                            VisualEffects.WriteColored($"❤️  You sacrifice 5 HP for power!\n", ConsoleColor.Yellow);
+                            Thread.Sleep(300);
+                            VisualEffects.WriteDamage($"💥 POWER STRIKE! You deal {damage} damage!\n");
+                        }
+                        else
+                        {
+                            VisualEffects.WriteColored("⚠️  Not enough HP! Performing normal attack...\n", ConsoleColor.Yellow);
+                            damage = playerAttack + rng.Next(5, 15);
+                            VisualEffects.WriteDamage($"⚔️  You deal {damage} damage!\n");
+                        }
+                        break;
+
+                    case "3": // Defensive Stance
+                        isDefending = true;
+                        VisualEffects.WriteSuccess("🛡️  You brace for impact! Next damage reduced by 50%\n");
+                        break;
+
+                    case "4": // Stun Attack
+                        if (turnCount > 1)
+                        {
+                            if (rng.Next(1, 101) <= 50)
+                            {
+                                enemyIsStunned = true;
+                                damage = playerAttack + rng.Next(1, 10);
+                                VisualEffects.WriteSuccess($"💫 STUN SUCCESS! Enemy stunned and takes {damage} damage!\n");
+                            }
+                            else
+                            {
+                                damage = playerAttack + rng.Next(1, 8);
+                                VisualEffects.WriteColored($"💫 Stun failed, but you deal {damage} damage!\n", ConsoleColor.Yellow);
+                            }
+                        }
+                        break;
+
+                    default:
+                        damage = playerAttack + rng.Next(5, 12);
+                        VisualEffects.WriteDamage($"⚔️  You strike for {damage} damage!\n");
+                        break;
+                }
+
+                enemyHp = Math.Max(0, enemyHp - damage);
                 Thread.Sleep(500);
-                Console.WriteLine("Goblin rolls: 8 (+3) = 11");
-                Thread.Sleep(300);
-                VisualEffects.WriteDamage("The goblin hits you for 3 damage!\n");
-                Thread.Sleep(500);
-                Console.WriteLine("Your HP: 47/50");
+
+                if (enemyHp <= 0)
+                {
+                    break;
+                }
+
+                VisualEffects.WriteInfo($"Enemy HP: {enemyHp}/{enemyMaxHp}\n");
+                Thread.Sleep(600);
+
+                // Enemy turn
+                if (enemyIsStunned)
+                {
+                    VisualEffects.WriteColored($"💫 {enemyName} is stunned and can't attack!\n", ConsoleColor.Yellow);
+                    enemyIsStunned = false;
+                    Thread.Sleep(800);
+                }
+                else
+                {
+                    Console.WriteLine($"\n🔴 {enemyName} attacks!");
+                    Thread.Sleep(400);
+
+                    int enemyRoll = rng.Next(1, 21);
+                    Console.WriteLine($"🎲 Enemy rolls: {enemyRoll}");
+                    Thread.Sleep(300);
+
+                    if (enemyRoll == 1)
+                    {
+                        VisualEffects.WriteSuccess("✨ The enemy misses completely!\n");
+                    }
+                    else
+                    {
+                        int enemyDamage = enemyAttack + (enemyRoll / 3);
+
+                        if (isDefending)
+                        {
+                            enemyDamage = enemyDamage / 2;
+                            VisualEffects.WriteInfo($"🛡️  Blocked! Reduced to {enemyDamage} damage!\n");
+                        }
+
+                        if (enemyRoll == 20)
+                        {
+                            enemyDamage *= 2;
+                            VisualEffects.WriteLineColored("💥 ENEMY CRITICAL HIT!", ConsoleColor.Red);
+                        }
+
+                        playerHp = Math.Max(0, playerHp - enemyDamage);
+                        VisualEffects.WriteDamage($"💔 You take {enemyDamage} damage!\n");
+                        Thread.Sleep(400);
+                        VisualEffects.WriteInfo($"Your HP: {playerHp}/{playerMaxHp}\n");
+                    }
+                }
+
                 Thread.Sleep(800);
-
-                Console.WriteLine("\n\nPress Enter to finish the fight...");
+                Console.WriteLine("\nPress Enter to continue...");
                 Console.ReadLine();
-
-                Console.WriteLine($"\nYou roll d20: {rng.Next(12, 19)} (+5 attack)");
-                Thread.Sleep(500);
-                VisualEffects.WriteDamage($"⚔️  You strike for {damage} damage!\n");
-                Thread.Sleep(500);
+                Console.Clear();
             }
 
+            // Victory!
+            Console.WriteLine();
             VisualEffects.ShowVictoryBanner();
-            VisualEffects.WriteSuccess($"💀 Goblin Raider was {VisualEffects.GetRandomKillMessage()}\n");
+            VisualEffects.WriteSuccess($"💀 {enemyName} was {VisualEffects.GetRandomKillMessage()}\n");
 
             Console.WriteLine();
             VisualEffects.WriteSuccess("💰 You found 10 gold!\n");
             VisualEffects.WriteSuccess("⭐ You gained 25 XP!\n");
+            VisualEffects.WriteSuccess($"❤️  Restored to full health! ({playerMaxHp}/{playerMaxHp} HP)\n");
 
-            Thread.Sleep(1000);
+            Thread.Sleep(1500);
 
             Console.WriteLine();
-            VisualEffects.WriteLineColored("Tutorial Complete! You're ready for adventure!", ConsoleColor.Green);
-            Console.WriteLine();
-            Console.WriteLine("In the full game, you'll:");
-            Console.WriteLine("  • Create a custom character with race and class");
-            Console.WriteLine("  • Explore dungeons and towns");
-            Console.WriteLine("  • Complete quests and earn achievements");
-            Console.WriteLine("  • Collect legendary equipment");
-            Console.WriteLine("  • Master skills and upgrade to champion classes");
+            VisualEffects.WriteLineColored("╔═══════════════════════════════════════════════════════════╗", ConsoleColor.Green);
+            VisualEffects.WriteLineColored("║            TUTORIAL COMPLETE!                             ║", ConsoleColor.Green);
+            VisualEffects.WriteLineColored("╚═══════════════════════════════════════════════════════════╝", ConsoleColor.Green);
             Console.WriteLine();
 
-            Console.WriteLine("Press any key to continue to the main menu...");
+            Console.WriteLine("🎮 What awaits you in the full game:");
+            Console.WriteLine();
+            Console.WriteLine("  🧙 Create custom characters with unique races & classes");
+            Console.WriteLine("  🗺️  Explore vast dungeons and mystical towns");
+            Console.WriteLine("  📜 Complete epic quests and earn achievements");
+            Console.WriteLine("  ⚔️  Master combat with stances, combos & abilities");
+            Console.WriteLine("  🎒 Collect legendary equipment and rare artifacts");
+            Console.WriteLine("  ⭐ Unlock champion classes and prestige levels");
+            Console.WriteLine("  👥 Challenge other players in multiplayer mode");
+            Console.WriteLine();
+
+            Console.WriteLine("Press any key to begin your adventure...");
             Console.ReadKey(true);
         }
 
