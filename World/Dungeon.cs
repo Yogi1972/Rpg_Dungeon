@@ -1,6 +1,7 @@
 ﻿using Night.Characters;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Rpg_Dungeon
@@ -574,46 +575,247 @@ namespace Rpg_Dungeon
         private void ShowMap()
         {
             var floor = _floors[_currentFloorIndex];
-            Console.WriteLine("\n╔═══════════════ FLOOR MAP ═══════════════╗");
+            Console.WriteLine("\n╔═══════════════════════════════ FLOOR MAP ════════════════════════════════╗");
             Console.WriteLine($"  Floor {floor.FloorNumber}/{_totalFloors}");
-            Console.WriteLine("  Legend:");
-            Console.WriteLine("    [X] - Current location");
-            Console.WriteLine("    [✓] - Cleared room");
-            Console.WriteLine("    [~] - Hallway/Corridor");
-            Console.WriteLine("    [?] - Unvisited area");
-            Console.WriteLine("    [B] - Boss room");
-            Console.WriteLine("    [S] - Stairs");
-            Console.WriteLine("    [T] - Treasure");
-            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Console.WriteLine("  Legend: [X]=You  [✓]=Cleared  [~]=Hall  [B]=Boss  [S]=Stairs  [T]=Treasure");
+            Console.WriteLine("══════════════════════════════════════════════════════════════════════════════");
+            Console.WriteLine();
 
-            foreach (var room in floor.AllRooms)
+            // Build coordinate map by traversing from start room
+            var roomCoords = new Dictionary<DungeonRoom, (int x, int y)>();
+            BuildRoomCoordinates(floor.StartRoom, 0, 0, roomCoords, new HashSet<DungeonRoom>());
+
+            // Find bounds
+            int minX = int.MaxValue, maxX = int.MinValue;
+            int minY = int.MaxValue, maxY = int.MinValue;
+
+            foreach (var coord in roomCoords.Values)
             {
-                if (!room.Visited)
-                    continue;
+                if (coord.x < minX) minX = coord.x;
+                if (coord.x > maxX) maxX = coord.x;
+                if (coord.y < minY) minY = coord.y;
+                if (coord.y > maxY) maxY = coord.y;
+            }
+
+            int width = maxX - minX + 1;
+            int height = maxY - minY + 1;
+
+            // Create two arrays: one for player position, one for cleared status
+            bool[,] playerPositionArray = new bool[width, height];
+            bool[,] clearedStatusArray = new bool[width, height];
+            DungeonRoom?[,] roomArray = new DungeonRoom[width, height];
+
+            // Fill arrays
+            foreach (var kvp in roomCoords)
             {
-                string symbol;
-                if (room == _currentRoom)
-                    symbol = "[X]";
-                else if (room.Location == LocationType.Hallway || room.Location == LocationType.Intersection)
-                    symbol = "[~]";
-                else if (room.Cleared)
-                    symbol = "[✓]";
-                else if (room.Type == RoomType.Boss)
-                    symbol = "[B]";
-                else if (room.Type == RoomType.Stairs)
-                    symbol = "[S]";
-                else if (room.Type == RoomType.Treasure)
-                    symbol = "[T]";
+                var room = kvp.Key;
+                int gridX = kvp.Value.x - minX;
+                int gridY = kvp.Value.y - minY;
+
+                if (!room.Visited) continue;
+
+                roomArray[gridX, gridY] = room;
+                clearedStatusArray[gridX, gridY] = room.Cleared;
+                playerPositionArray[gridX, gridY] = (room == _currentRoom);
+            }
+
+            // Draw grid using the arrays
+            for (int y = 0; y < height; y++)
+            {
+                // Draw horizontal connections
+                for (int x = 0; x < width; x++)
+                {
+                    var room = roomArray[x, y];
+                    if (room != null)
+                    {
+                        Console.Write("  ");
+                        var eastRoom = (x + 1 < width) ? roomArray[x + 1, y] : null;
+                        if (room.Exits["east"] == eastRoom && eastRoom != null)
+                            Console.Write("──");
+                        else
+                            Console.Write("  ");
+                    }
+                    else
+                    {
+                        Console.Write("      ");
+                    }
+                }
+                Console.WriteLine();
+
+                // Draw rooms using both arrays
+                for (int x = 0; x < width; x++)
+                {
+                    var room = roomArray[x, y];
+                    if (room != null)
+                    {
+                        bool isPlayerHere = playerPositionArray[x, y];
+                        bool isCleared = clearedStatusArray[x, y];
+                        string symbol = GetRoomSymbolFromArrays(room, isPlayerHere, isCleared);
+                        Console.Write($" {symbol} ");
+                    }
+                    else
+                    {
+                        Console.Write("     ");
+                    }
+                }
+                Console.WriteLine();
+
+                // Draw vertical connections
+                for (int x = 0; x < width; x++)
+                {
+                    var room = roomArray[x, y];
+                    if (room != null)
+                    {
+                        var southRoom = (y + 1 < height) ? roomArray[x, y + 1] : null;
+                        if (room.Exits["south"] == southRoom && southRoom != null)
+                            Console.Write("  │  ");
+                        else
+                            Console.Write("     ");
+                    }
+                    else
+                    {
+                        Console.Write("     ");
+                    }
+                }
+                Console.WriteLine();
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("══════════════════════════════════════════════════════════════════════════════");
+            Console.WriteLine("  📍 PARTY LOCATION:");
+            Console.WriteLine($"     {GetRoomSymbol(_currentRoom)} {GetRoomDescription(_currentRoom)}");
+            Console.WriteLine($"     Exits: {_currentRoom.GetExitsDescription()}");
+            Console.WriteLine("╚══════════════════════════════════════════════════════════════════════════════╝");
+
+            // Show options to enter rooms
+            Console.WriteLine("\n--- Map Options ---");
+            Console.WriteLine("E) Enter/Select a Room");
+            Console.WriteLine("0) Close Map");
+            Console.Write("\nChoice: ");
+
+            var choice = Console.ReadLine()?.Trim().ToUpper() ?? "";
+
+            if (choice == "E")
+            {
+                SelectRoomFromMap(roomCoords);
+            }
+        }
+
+        private void BuildRoomCoordinates(DungeonRoom room, int x, int y, Dictionary<DungeonRoom, (int x, int y)> coords, HashSet<DungeonRoom> visited)
+        {
+            if (visited.Contains(room) || coords.ContainsKey(room))
+                return;
+
+            coords[room] = (x, y);
+            visited.Add(room);
+
+            if (room.Exits["north"] != null)
+                BuildRoomCoordinates(room.Exits["north"]!, x, y - 1, coords, visited);
+            if (room.Exits["south"] != null)
+                BuildRoomCoordinates(room.Exits["south"]!, x, y + 1, coords, visited);
+            if (room.Exits["east"] != null)
+                BuildRoomCoordinates(room.Exits["east"]!, x + 1, y, coords, visited);
+            if (room.Exits["west"] != null)
+                BuildRoomCoordinates(room.Exits["west"]!, x - 1, y, coords, visited);
+        }
+
+        private DungeonRoom? GetRoomAtCoord(Dictionary<DungeonRoom, (int x, int y)> coords, int x, int y)
+        {
+            foreach (var kvp in coords)
+            {
+                if (kvp.Value.x == x && kvp.Value.y == y)
+                    return kvp.Key;
+            }
+            return null;
+        }
+
+        private void SelectRoomFromMap(Dictionary<DungeonRoom, (int x, int y)> roomCoords)
+        {
+            var visitedRooms = roomCoords.Keys.Where(r => r.Visited).ToList();
+
+            if (visitedRooms.Count == 0)
+            {
+                Console.WriteLine("\n❌ No rooms have been visited yet!");
+                Console.WriteLine("Press Enter to continue...");
+                Console.ReadLine();
+                return;
+            }
+
+            Console.WriteLine("\n╔═══════════════════════════════════════╗");
+            Console.WriteLine("║         SELECT ROOM TO ENTER          ║");
+            Console.WriteLine("╚═══════════════════════════════════════╝");
+
+            for (int i = 0; i < visitedRooms.Count; i++)
+            {
+                var room = visitedRooms[i];
+                var coords = roomCoords[room];
+                string status = room == _currentRoom ? " ⬅ CURRENT" : (room.Cleared ? " [✓]" : "");
+                Console.WriteLine($"{i + 1}) {GetRoomDescription(room)} at ({coords.x}, {coords.y}){status}");
+            }
+
+            Console.WriteLine("0) Cancel");
+            Console.Write("\nSelect room to enter (or 0 to cancel): ");
+
+            if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= visitedRooms.Count)
+            {
+                var selectedRoom = visitedRooms[choice - 1];
+
+                if (selectedRoom == _currentRoom)
+                {
+                    Console.WriteLine("\n✓ You are already in this room!");
+                }
                 else
-                    symbol = "[ ]";
+                {
+                    _currentRoom = selectedRoom;
+                    Console.WriteLine($"\n✓ Moved to {GetRoomDescription(_currentRoom)}");
+                }
 
-                Console.WriteLine($"  {symbol} {GetRoomDescription(room)}");
+                Console.WriteLine("Press Enter to continue...");
+                Console.ReadLine();
             }
-            }
+        }
 
-            Console.WriteLine("╚═════════════════════════════════════════╝");
-            Console.WriteLine("\nPress Enter to continue...");
-            Console.ReadLine();
+        private string GetRoomSymbolFromArrays(DungeonRoom room, bool isPlayerHere, bool isCleared)
+        {
+            // Check player position array first
+            if (isPlayerHere)
+                return "[X]";
+
+            // Check room type
+            if (room.Location == LocationType.Hallway || room.Location == LocationType.Intersection)
+                return "[~]";
+
+            // Check cleared status array
+            if (isCleared)
+                return "[✓]";
+
+            // Check special room types
+            if (room.Type == RoomType.Boss)
+                return "[B]";
+            if (room.Type == RoomType.Stairs)
+                return "[S]";
+            if (room.Type == RoomType.Treasure)
+                return "[T]";
+
+            return "[ ]";
+        }
+
+        private string GetRoomSymbol(DungeonRoom room)
+        {
+            if (room == _currentRoom)
+                return "[X]";
+            else if (room.Location == LocationType.Hallway || room.Location == LocationType.Intersection)
+                return "[~]";
+            else if (room.Cleared)
+                return "[✓]";
+            else if (room.Type == RoomType.Boss)
+                return "[B]";
+            else if (room.Type == RoomType.Stairs)
+                return "[S]";
+            else if (room.Type == RoomType.Treasure)
+                return "[T]";
+            else
+                return "[ ]";
         }
 
         private void ShowPartyStatus(List<Character> party)

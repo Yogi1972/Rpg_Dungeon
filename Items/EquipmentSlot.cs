@@ -8,6 +8,9 @@ namespace Rpg_Dungeon
         Necklace,
         Ring1,
         Ring2,
-        OffHand
+        OffHand,
+        BeltPouch1,
+        BeltPouch2,
+        BeltPouch3
     }
 }

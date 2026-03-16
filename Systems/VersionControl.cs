@@ -40,9 +40,10 @@ namespace Rpg_Dungeon.Systems
         public const string GitHubDevUrl = "https://github.com/Yogi1972/Rpg_Dungeon";
 
         /// <summary>
-        /// GitHub raw content URL for version file (used for update checking)
+        /// GitHub API URL for latest release (used for update checking)
+        /// Only checks official published releases - secure and read-only for users
         /// </summary>
-        public const string GitHubVersionCheckUrl = "https://raw.githubusercontent.com/Yogi1972/Rpg_Dungeon/main/Docs/version.json";
+        public const string GitHubVersionCheckUrl = "https://api.github.com/repos/Yogi1972/Rpg_Dungeon/releases/latest";
 
         /// <summary>
         /// Build date of this version

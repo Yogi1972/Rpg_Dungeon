@@ -17,7 +17,7 @@ namespace Rpg_Dungeon.Systems
         };
 
         /// <summary>
-        /// Version information from GitHub
+        /// Version information from GitHub Releases API
         /// </summary>
         public class VersionInfo
         {
@@ -30,21 +30,40 @@ namespace Rpg_Dungeon.Systems
         }
 
         /// <summary>
-        /// Check for updates from GitHub
+        /// GitHub API release response model
+        /// </summary>
+        private class GitHubRelease
+        {
+            public string? tag_name { get; set; }
+            public string? name { get; set; }
+            public string? body { get; set; }
+            public string? published_at { get; set; }
+            public bool prerelease { get; set; }
+        }
+
+        /// <summary>
+        /// Check for updates from GitHub Releases API
         /// </summary>
         public static async Task<VersionInfo?> CheckForUpdatesAsync()
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Rpg-Dungeon-Crawler/1.0");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Rpg-Dungeon-Crawler/2.0");
+                _httpClient.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
 
                 var response = await _httpClient.GetStringAsync(VersionControl.GitHubVersionCheckUrl);
-                var versionInfo = JsonSerializer.Deserialize<VersionInfo>(response, new JsonSerializerOptions 
+                var githubRelease = JsonSerializer.Deserialize<GitHubRelease>(response, new JsonSerializerOptions 
                 { 
                     PropertyNameCaseInsensitive = true 
                 });
 
-                return versionInfo;
+                if (githubRelease == null || string.IsNullOrWhiteSpace(githubRelease.tag_name))
+                {
+                    return null;
+                }
+
+                return ParseGitHubRelease(githubRelease);
             }
             catch (HttpRequestException ex)
             {
@@ -61,6 +80,47 @@ namespace Rpg_Dungeon.Systems
                 ErrorLogger.LogWarning($"Update check failed: {ex.Message}", "Unexpected error during update check");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Parse GitHub release info into VersionInfo
+        /// </summary>
+        private static VersionInfo ParseGitHubRelease(GitHubRelease release)
+        {
+            var versionInfo = new VersionInfo
+            {
+                ReleaseNotes = release.body,
+                ReleaseDate = release.published_at
+            };
+
+            // Parse tag name (e.g., "v2.1.0" or "2.1.0-alpha")
+            string tagName = release.tag_name?.TrimStart('v', 'V') ?? "0.0.0";
+
+            // Split by '-' to separate version from pre-release tag
+            string[] parts = tagName.Split('-');
+            string versionPart = parts[0];
+
+            if (parts.Length > 1)
+            {
+                versionInfo.PreReleaseTag = parts[1];
+            }
+
+            // Parse version numbers
+            string[] versionNumbers = versionPart.Split('.');
+            if (versionNumbers.Length >= 1 && int.TryParse(versionNumbers[0], out int major))
+            {
+                versionInfo.MajorVersion = major;
+            }
+            if (versionNumbers.Length >= 2 && int.TryParse(versionNumbers[1], out int minor))
+            {
+                versionInfo.MinorVersion = minor;
+            }
+            if (versionNumbers.Length >= 3 && int.TryParse(versionNumbers[2], out int patch))
+            {
+                versionInfo.PatchVersion = patch;
+            }
+
+            return versionInfo;
         }
 
         /// <summary>
