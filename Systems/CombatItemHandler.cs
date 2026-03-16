@@ -201,7 +201,7 @@ namespace Rpg_Dungeon
 
         private static void UseOffensiveItem(Character member, Mob mob, ref int mobHp, Item item, int slotIndex)
         {
-            int roll = Combat.RollD20();
+            int roll = CombatSystem.RollD20();
             int attackBonus = member.Agility / 2;
             int targetDefense = 10 + (mob.Agility / 2);
 
