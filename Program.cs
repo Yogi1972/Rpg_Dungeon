@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
+using Rpg_Dungeon.Systems;
 
 namespace Rpg_Dungeon
 {
@@ -11,6 +13,7 @@ namespace Rpg_Dungeon
             try
             {
                 Console.WriteLine("PROGRAM STARTING...");
+                Console.WriteLine($"Version: {VersionControl.FullVersion}");
                 Console.WriteLine("Please wait...");
                 Thread.Sleep(500);
 
@@ -24,6 +27,9 @@ namespace Rpg_Dungeon
                     Console.WriteLine($"UTF-8 failed: {ex.Message}");
                     ErrorLogger.LogWarning($"UTF-8 encoding failed: {ex.Message}", "Non-critical - continuing with default encoding");
                 }
+
+                // Check for updates in the background
+                CheckForUpdatesAsync();
 
                 Console.WriteLine("Showing title screen...");
                 Thread.Sleep(500);
@@ -62,6 +68,29 @@ namespace Rpg_Dungeon
                 }
 
                 Environment.Exit(1);
+            }
+        }
+
+        /// <summary>
+        /// Checks for updates asynchronously in the background
+        /// </summary>
+        private static async void CheckForUpdatesAsync()
+        {
+            try
+            {
+                var updateInfo = await UpdateChecker.CheckForUpdatesAsync();
+
+                if (updateInfo != null && UpdateChecker.IsNewerVersion(updateInfo))
+                {
+                    // Store update information for display in title screen or options menu
+                    Console.WriteLine($"\n🎉 Update available: v{updateInfo.MajorVersion}.{updateInfo.MinorVersion}.{updateInfo.PatchVersion}");
+                    Console.WriteLine($"   Visit {VersionControl.GitHubReleaseUrl} to download.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Silently log update check failures - non-critical
+                ErrorLogger.LogWarning($"Update check failed: {ex.Message}", "Non-critical - continuing without update check");
             }
         }
     }
