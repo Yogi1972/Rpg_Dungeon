@@ -16,24 +16,89 @@ namespace Rpg_Dungeon
         {
             _jewelry = new List<StockEntry<Equipment>>
             {
-                new StockEntry<Equipment>(new Equipment("Iron Necklace", EquipmentType.Necklace, 35, 55, str: 4, hp: 10), 55, 4),
-                new StockEntry<Equipment>(new Equipment("Ring of Strength", EquipmentType.Ring, 30, 45, str: 5), 45, 6),
-                new StockEntry<Equipment>(new Equipment("Berserker's Band", EquipmentType.Ring, 32, 50, str: 6, hp: 5), 50, 4),
-                new StockEntry<Equipment>(new Equipment("Arcane Pendant", EquipmentType.Necklace, 30, 70, intel: 5, mana: 15), 70, 3),
-                new StockEntry<Equipment>(new Equipment("Ring of Intellect", EquipmentType.Ring, 28, 50, intel: 6), 50, 5),
-                new StockEntry<Equipment>(new Equipment("Mystic Circle", EquipmentType.Ring, 30, 55, intel: 5, mana: 10), 55, 4),
-                new StockEntry<Equipment>(new Equipment("Shadow Amulet", EquipmentType.Necklace, 32, 65, agi: 5, hp: 8), 65, 3),
-                new StockEntry<Equipment>(new Equipment("Ring of Agility", EquipmentType.Ring, 29, 48, agi: 6), 48, 5),
-                new StockEntry<Equipment>(new Equipment("Thief's Signet", EquipmentType.Ring, 31, 52, agi: 5, str: 2), 52, 4),
-                new StockEntry<Equipment>(new Equipment("Holy Symbol", EquipmentType.Necklace, 33, 68, intel: 5, mana: 12), 68, 3),
-                new StockEntry<Equipment>(new Equipment("Ring of Restoration", EquipmentType.Ring, 30, 50, intel: 4, mana: 8), 50, 5),
-                new StockEntry<Equipment>(new Equipment("Blessed Band", EquipmentType.Ring, 32, 54, intel: 5, hp: 10), 54, 4),
-                new StockEntry<Equipment>(new Equipment("Golden Necklace", EquipmentType.Necklace, 40, 90, str: 3, agi: 3, intel: 3), 90, 2),
-                new StockEntry<Equipment>(new Equipment("Dragon Scale Amulet", EquipmentType.Necklace, 45, 120, str: 5, agi: 5, intel: 5, hp: 20), 120, 1),
-                new StockEntry<Equipment>(new Equipment("Ring of Protection", EquipmentType.Ring, 35, 60, hp: 15, mana: 10), 60, 3),
-                new StockEntry<Equipment>(new Equipment("Platinum Band", EquipmentType.Ring, 38, 75, str: 4, agi: 4), 75, 2),
-                new StockEntry<Equipment>(new Equipment("Ruby Ring", EquipmentType.Ring, 33, 65, str: 5, intel: 2), 65, 3),
-                new StockEntry<Equipment>(new Equipment("Emerald Ring", EquipmentType.Ring, 33, 65, agi: 5, intel: 2), 65, 3)
+                // WARRIOR RINGS
+                new StockEntry<Equipment>(new Equipment("Iron Ring", EquipmentType.Ring, 100, 40, str: 3), 40, 12),
+                new StockEntry<Equipment>(new Equipment("Ring of Strength", EquipmentType.Ring, 100, 55, str: 5), 55, 10),
+                new StockEntry<Equipment>(new Equipment("Berserker's Band", EquipmentType.Ring, 100, 75, str: 7, hp: 10), 75, 7),
+                new StockEntry<Equipment>(new Equipment("Ring of Might", EquipmentType.Ring, 100, 95, str: 9), 95, 5),
+                new StockEntry<Equipment>(new Equipment("Ring of the Berserker", EquipmentType.Ring, 100, 145, str: 11, stamina: 20), 145, 3),
+                new StockEntry<Equipment>(new Equipment("Guardian's Band", EquipmentType.Ring, 100, 155, str: 8, armor: 5, hp: 35), 155, 2),
+                new StockEntry<Equipment>(new Equipment("Paladin's Ring", EquipmentType.Ring, 100, 165, str: 9, intel: 9, mana: 25), 165, 2),
+                new StockEntry<Equipment>(new Equipment("Titan's Ring", EquipmentType.Ring, 100, 200, str: 13, hp: 50), 200, 1),
+
+                // WARRIOR NECKLACES
+                new StockEntry<Equipment>(new Equipment("Iron Necklace", EquipmentType.Necklace, 100, 55, str: 4, hp: 12), 55, 10),
+                new StockEntry<Equipment>(new Equipment("Amulet of Strength", EquipmentType.Necklace, 100, 85, str: 7, hp: 20), 85, 7),
+                new StockEntry<Equipment>(new Equipment("Berserker's Torc", EquipmentType.Necklace, 100, 160, str: 11, stamina: 35), 160, 3),
+                new StockEntry<Equipment>(new Equipment("Guardian's Pendant", EquipmentType.Necklace, 100, 175, armor: 7, hp: 55), 175, 2),
+                new StockEntry<Equipment>(new Equipment("Paladin's Medallion", EquipmentType.Necklace, 100, 190, str: 10, intel: 11, mana: 35, hp: 40), 190, 2),
+                new StockEntry<Equipment>(new Equipment("Champion's Chain", EquipmentType.Necklace, 100, 220, str: 13, armor: 5, hp: 60), 220, 1),
+
+                // MAGE RINGS
+                new StockEntry<Equipment>(new Equipment("Gold Ring", EquipmentType.Ring, 100, 50, intel: 4), 50, 11),
+                new StockEntry<Equipment>(new Equipment("Ring of Intellect", EquipmentType.Ring, 100, 65, intel: 6), 65, 9),
+                new StockEntry<Equipment>(new Equipment("Mystic Circle", EquipmentType.Ring, 100, 80, intel: 7, mana: 18), 80, 7),
+                new StockEntry<Equipment>(new Equipment("Ring of Arcana", EquipmentType.Ring, 100, 110, intel: 9, mana: 28), 110, 5),
+                new StockEntry<Equipment>(new Equipment("Ring of the Archmage", EquipmentType.Ring, 100, 165, intel: 14, mana: 50), 165, 2),
+                new StockEntry<Equipment>(new Equipment("Necromancer's Band", EquipmentType.Ring, 100, 155, intel: 12, hp: 25, mana: 40), 155, 2),
+                new StockEntry<Equipment>(new Equipment("Elementalist's Loop", EquipmentType.Ring, 100, 160, intel: 13, mana: 45), 160, 2),
+                new StockEntry<Equipment>(new Equipment("Void Ring", EquipmentType.Ring, 100, 180, intel: 16, mana: 55), 180, 1),
+
+                // MAGE NECKLACES
+                new StockEntry<Equipment>(new Equipment("Silver Necklace", EquipmentType.Necklace, 100, 60, mana: 18), 60, 10),
+                new StockEntry<Equipment>(new Equipment("Arcane Pendant", EquipmentType.Necklace, 100, 95, intel: 8, mana: 30), 95, 7),
+                new StockEntry<Equipment>(new Equipment("Amulet of Wisdom", EquipmentType.Necklace, 100, 120, intel: 10, mana: 38), 120, 5),
+                new StockEntry<Equipment>(new Equipment("Mystic Amulet", EquipmentType.Necklace, 100, 155, intel: 13, mana: 50), 155, 3),
+                new StockEntry<Equipment>(new Equipment("Archmage's Medallion", EquipmentType.Necklace, 100, 210, intel: 20, mana: 80), 210, 1),
+                new StockEntry<Equipment>(new Equipment("Necromancer's Amulet", EquipmentType.Necklace, 100, 195, intel: 17, hp: 40, mana: 65), 195, 2),
+                new StockEntry<Equipment>(new Equipment("Elemental Talisman", EquipmentType.Necklace, 100, 200, intel: 18, mana: 70), 200, 1),
+
+                // ROGUE RINGS
+                new StockEntry<Equipment>(new Equipment("Silver Ring", EquipmentType.Ring, 100, 45, agi: 3), 45, 12),
+                new StockEntry<Equipment>(new Equipment("Ring of Agility", EquipmentType.Ring, 100, 60, agi: 6), 60, 9),
+                new StockEntry<Equipment>(new Equipment("Thief's Signet", EquipmentType.Ring, 100, 70, agi: 7, str: 2), 70, 8),
+                new StockEntry<Equipment>(new Equipment("Ring of Swiftness", EquipmentType.Ring, 100, 100, agi: 9, stamina: 15), 100, 5),
+                new StockEntry<Equipment>(new Equipment("Assassin's Band", EquipmentType.Ring, 100, 160, agi: 14, stamina: 30), 160, 2),
+                new StockEntry<Equipment>(new Equipment("Ranger's Ring", EquipmentType.Ring, 100, 155, agi: 13, hp: 25), 155, 2),
+                new StockEntry<Equipment>(new Equipment("Shadow Ring", EquipmentType.Ring, 100, 170, agi: 15, intel: 5), 170, 2),
+                new StockEntry<Equipment>(new Equipment("Windwalker's Band", EquipmentType.Ring, 100, 190, agi: 17, stamina: 35), 190, 1),
+
+                // ROGUE NECKLACES
+                new StockEntry<Equipment>(new Equipment("Shadow Amulet", EquipmentType.Necklace, 100, 65, agi: 5, hp: 10), 65, 9),
+                new StockEntry<Equipment>(new Equipment("Amulet of Agility", EquipmentType.Necklace, 100, 90, agi: 8, stamina: 15), 90, 6),
+                new StockEntry<Equipment>(new Equipment("Shadow Pendant", EquipmentType.Necklace, 100, 125, agi: 11, stamina: 25), 125, 4),
+                new StockEntry<Equipment>(new Equipment("Assassin's Choker", EquipmentType.Necklace, 100, 175, agi: 16, stamina: 35), 175, 2),
+                new StockEntry<Equipment>(new Equipment("Ranger's Torc", EquipmentType.Necklace, 100, 170, agi: 14, hp: 35), 170, 2),
+                new StockEntry<Equipment>(new Equipment("Shadowblade's Amulet", EquipmentType.Necklace, 100, 185, agi: 17, intel: 7), 185, 1),
+
+                // PRIEST RINGS
+                new StockEntry<Equipment>(new Equipment("Ring of Restoration", EquipmentType.Ring, 100, 70, intel: 5, mana: 12), 70, 8),
+                new StockEntry<Equipment>(new Equipment("Blessed Band", EquipmentType.Ring, 100, 85, intel: 6, hp: 15), 85, 7),
+                new StockEntry<Equipment>(new Equipment("Ring of Faith", EquipmentType.Ring, 100, 100, intel: 8, mana: 25), 100, 5),
+                new StockEntry<Equipment>(new Equipment("Ring of Devotion", EquipmentType.Ring, 100, 125, intel: 10, hp: 28, mana: 30), 125, 4),
+                new StockEntry<Equipment>(new Equipment("Templar's Signet", EquipmentType.Ring, 100, 160, str: 7, intel: 11, armor: 4), 160, 2),
+                new StockEntry<Equipment>(new Equipment("Druid's Band", EquipmentType.Ring, 100, 155, intel: 11, hp: 40), 155, 2),
+                new StockEntry<Equipment>(new Equipment("Oracle's Circle", EquipmentType.Ring, 100, 175, intel: 15, mana: 55), 175, 1),
+
+                // PRIEST NECKLACES  
+                new StockEntry<Equipment>(new Equipment("Holy Symbol", EquipmentType.Necklace, 100, 75, intel: 6, mana: 15), 75, 8),
+                new StockEntry<Equipment>(new Equipment("Amulet of Protection", EquipmentType.Necklace, 100, 90, armor: 3, hp: 20), 90, 6),
+                new StockEntry<Equipment>(new Equipment("Holy Symbol Necklace", EquipmentType.Necklace, 100, 115, intel: 9, mana: 32, hp: 25), 115, 4),
+                new StockEntry<Equipment>(new Equipment("Divine Pendant", EquipmentType.Necklace, 100, 150, intel: 12, mana: 45, hp: 38), 150, 3),
+                new StockEntry<Equipment>(new Equipment("Templar's Chain", EquipmentType.Necklace, 100, 185, str: 9, intel: 13, armor: 5, hp: 45), 185, 2),
+                new StockEntry<Equipment>(new Equipment("Oracle's Vision", EquipmentType.Necklace, 100, 195, intel: 18, mana: 70), 195, 1),
+
+                // UNIVERSAL LEGENDARY
+                new StockEntry<Equipment>(new Equipment("Golden Necklace", EquipmentType.Necklace, 100, 135, str: 5, agi: 5, intel: 5), 135, 3),
+                new StockEntry<Equipment>(new Equipment("Dragon Scale Amulet", EquipmentType.Necklace, 100, 250, str: 8, agi: 8, intel: 8, hp: 40), 250, 1),
+                new StockEntry<Equipment>(new Equipment("Ring of Protection", EquipmentType.Ring, 100, 90, hp: 20, mana: 15), 90, 6),
+                new StockEntry<Equipment>(new Equipment("Platinum Band", EquipmentType.Ring, 100, 130, str: 6, agi: 6), 130, 3),
+                new StockEntry<Equipment>(new Equipment("Ring of Balance", EquipmentType.Ring, 100, 110, str: 4, agi: 4, intel: 4), 110, 5),
+                new StockEntry<Equipment>(new Equipment("Ring of the Champion", EquipmentType.Ring, 100, 260, str: 9, agi: 9, intel: 9, hp: 50), 260, 1),
+                new StockEntry<Equipment>(new Equipment("Ruby Ring", EquipmentType.Ring, 100, 100, str: 8, intel: 3), 100, 5),
+                new StockEntry<Equipment>(new Equipment("Emerald Ring", EquipmentType.Ring, 100, 100, agi: 8, intel: 3), 100, 5),
+                new StockEntry<Equipment>(new Equipment("Sapphire Ring", EquipmentType.Ring, 100, 105, intel: 9, mana: 20), 105, 5),
+                new StockEntry<Equipment>(new Equipment("Diamond Ring", EquipmentType.Ring, 100, 220, str: 7, agi: 7, intel: 7, hp: 30), 220, 1)
             };
         }
 

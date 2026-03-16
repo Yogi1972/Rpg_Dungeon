@@ -147,6 +147,40 @@ namespace Rpg_Dungeon
             _mapNodes.Add(new MapNode("Temple Steps", 13, 28, LocationCategory.Camp, 1, false));
             _mapNodes.Add(new MapNode("Old Fort", 18, 35, LocationCategory.Camp, 1, false));
             _mapNodes.Add(new MapNode("Merchant's Rest", 68, 32, LocationCategory.Camp, 1, false));
+
+            // === ENEMY CAMPS (20) - Hostile combat locations ===
+
+            // Weak Enemy Camps (Level 1-5) - 4 camps
+            _mapNodes.Add(new MapNode("Goblin Raiding Post", 42, 24, LocationCategory.Dungeon, 3, false));
+            _mapNodes.Add(new MapNode("Bandit's Hollow", 47, 26, LocationCategory.Dungeon, 2, false));
+            _mapNodes.Add(new MapNode("Wolf Den", 36, 19, LocationCategory.Dungeon, 3, false));
+            _mapNodes.Add(new MapNode("Spider Hollow", 57, 24, LocationCategory.Dungeon, 4, false));
+
+            // Normal Enemy Camps (Level 5-10) - 5 camps
+            _mapNodes.Add(new MapNode("Blackwood Bandits", 33, 14, LocationCategory.Dungeon, 6, false));
+            _mapNodes.Add(new MapNode("Goblin Warband Camp", 44, 28, LocationCategory.Dungeon, 7, false));
+            _mapNodes.Add(new MapNode("Restless Graves", 26, 18, LocationCategory.Dungeon, 8, false));
+            _mapNodes.Add(new MapNode("Bear's Territory", 39, 8, LocationCategory.Dungeon, 7, false));
+            _mapNodes.Add(new MapNode("Abandoned Mine", 50, 12, LocationCategory.Dungeon, 8, false));
+
+            // Strong Enemy Camps (Level 10-15) - 4 camps
+            _mapNodes.Add(new MapNode("Orc War Camp", 30, 15, LocationCategory.Dungeon, 12, false));
+            _mapNodes.Add(new MapNode("Dark Cult Altar", 24, 22, LocationCategory.Dungeon, 13, false));
+            _mapNodes.Add(new MapNode("Haunted Battlefield", 15, 20, LocationCategory.Dungeon, 14, false));
+            _mapNodes.Add(new MapNode("Troll's Bridge", 48, 30, LocationCategory.Dungeon, 12, false));
+
+            // Dangerous Enemy Camps (Level 15-20) - 4 camps
+            _mapNodes.Add(new MapNode("Ironpeak Orcs", 20, 8, LocationCategory.Dungeon, 17, false));
+            _mapNodes.Add(new MapNode("Demon's Gate", 12, 30, LocationCategory.Dungeon, 18, false));
+            _mapNodes.Add(new MapNode("Crimson Bandit Fort", 72, 28, LocationCategory.Dungeon, 16, false));
+            _mapNodes.Add(new MapNode("Elemental Rift", 76, 16, LocationCategory.Dungeon, 19, false));
+
+            // Deadly Enemy Camps (Level 20-25) - 2 camps
+            _mapNodes.Add(new MapNode("Necropolis", 14, 34, LocationCategory.Dungeon, 22, false));
+            _mapNodes.Add(new MapNode("Doomhammer Clan", 17, 12, LocationCategory.Dungeon, 23, false));
+
+            // Elite Enemy Camps (Level 25+) - 1 camp
+            _mapNodes.Add(new MapNode("Shadowflame Lair", 10, 38, LocationCategory.Dungeon, 27, false));
         }
 
         #endregion
@@ -206,7 +240,7 @@ namespace Rpg_Dungeon
 
                 // Legend
                 Console.WriteLine("\n📍 Legend:");
-                Console.WriteLine("  ★ = Your Location  |  ◈ = Major Town  |  ■ = Settlement  |  ▲ = Camp");
+                Console.WriteLine("  ★ = Your Location  |  ◈ = Major Town  |  ■ = Settlement  |  ▲ = Camp  |  ☠ = Enemy Camp");
                 Console.WriteLine("  ~ = Water  |  ^ = Mountains  |  ≋ = Desert  |  ░ = Forest  |  □ = Plains  |  █ = Undiscovered");
 
                 Console.WriteLine($"\n📍 Current Location: {_currentLocationName}");

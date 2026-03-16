@@ -64,7 +64,7 @@ namespace Rpg_Dungeon
 
         #region Town Interface
 
-        public void EnterTown(List<Character> party)
+        public void EnterTown(List<Character> party, GameState? gameState = null)
         {
             if (party == null || party.Count == 0)
             {
@@ -76,6 +76,16 @@ namespace Rpg_Dungeon
             {
                 _centralSquare.ShowCentralSquare(party);
 
+                // Show NPC count if GameState is available
+                if (gameState?.NPCManager != null)
+                {
+                    var npcs = gameState.NPCManager.GetNPCsAtLocation("GreyWolf Town");
+                    if (npcs.Count > 0)
+                    {
+                        Console.WriteLine($"   👥 {npcs.Count} NPCs are around town");
+                    }
+                }
+
                 Console.WriteLine("\n--- Town Directions ---");
                 Console.WriteLine("Where would you like to go?");
                 Console.WriteLine("1) North Side (Crafters District)");
@@ -83,6 +93,10 @@ namespace Rpg_Dungeon
                 Console.WriteLine("3) South Side (Mystic Quarter)");
                 Console.WriteLine("4) West Side (Entertainment District)");
                 Console.WriteLine("5) Trade with Party Members");
+                if (gameState?.NPCManager != null)
+                {
+                    Console.WriteLine("6) Talk to People Around Town 👥");
+                }
                 Console.WriteLine("0) Leave Town");
                 Console.Write("Choice: ");
 
@@ -105,14 +119,82 @@ namespace Rpg_Dungeon
                     case "5":
                         _trading.OpenTradeMenu(party);
                         break;
+                    case "6" when gameState?.NPCManager != null:
+                        TalkToTownNPCs(party, gameState);
+                        break;
                     case "0":
                         Console.WriteLine("\nYou leave the town and head back on the road.");
                         return;
                     default:
-                        Console.WriteLine("Invalid choice. Please choose 0-5.");
+                        Console.WriteLine("Invalid choice. Please choose 0-6.");
                         break;
                 }
             }
+        }
+
+        private void TalkToTownNPCs(List<Character> party, GameState gameState)
+        {
+            if (gameState.NPCManager == null || gameState.Journal == null || gameState.MainStoryline == null)
+            {
+                Console.WriteLine("NPC system not available.");
+                Console.ReadKey();
+                return;
+            }
+
+            var npcs = gameState.NPCManager.GetNPCsAtLocation("GreyWolf Town");
+
+            if (npcs.Count == 0)
+            {
+                Console.WriteLine("\nThe town seems unusually quiet at the moment.");
+                Console.ReadKey();
+                return;
+            }
+
+            while (true)
+            {
+                Console.WriteLine($"\n╔══════════════════════════════════════════════╗");
+                Console.WriteLine($"║        People of GreyWolf Town             ║");
+                Console.WriteLine($"╚══════════════════════════════════════════════╝");
+
+                for (int i = 0; i < npcs.Count; i++)
+                {
+                    var npc = npcs[i];
+                    string questIndicator = npc.AvailableQuests.Count > 0 ? " ❗" : "";
+                    string typeIcon = GetNPCTypeIcon(npc.Type);
+                    Console.WriteLine($"{i + 1}) {typeIcon} {npc.Name} - {npc.Type}{questIndicator}");
+                }
+
+                Console.WriteLine("0) Back to Town Square");
+                Console.Write("\nTalk to whom? ");
+
+                var choice = Console.ReadLine()?.Trim() ?? "";
+                if (choice == "0") return;
+
+                if (int.TryParse(choice, out int npcIndex) && npcIndex > 0 && npcIndex <= npcs.Count)
+                {
+                    npcs[npcIndex - 1].Interact(party, gameState.Journal, gameState.MainStoryline);
+                }
+                else
+                {
+                    Console.WriteLine("Invalid choice.");
+                    Console.ReadKey();
+                }
+            }
+        }
+
+        private string GetNPCTypeIcon(NPCType type)
+        {
+            return type switch
+            {
+                NPCType.Elder => "👴",
+                NPCType.Guard => "🛡️",
+                NPCType.Merchant => "💰",
+                NPCType.Questgiver => "📜",
+                NPCType.Informant => "🕵️",
+                NPCType.Traveler => "🎒",
+                NPCType.Citizen => "👤",
+                _ => "👤"
+            };
         }
 
         #endregion

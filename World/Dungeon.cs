@@ -81,7 +81,8 @@ namespace Rpg_Dungeon
     internal class Dungeon
     {
         private readonly int _totalFloors;
-        private readonly Random _rng = new Random();
+        private readonly Random _rng;
+        private readonly DungeonGenerator _generator;
         private readonly List<DungeonFloor> _floors;
         private int _currentFloorIndex;
         private DungeonRoom _currentRoom;
@@ -92,238 +93,35 @@ namespace Rpg_Dungeon
         private readonly RandomEventManager _randomEvents;
         private readonly Trading _trading;
 
-        public Dungeon(int floors = 3)
+        public Dungeon(int floors = 3, int? seed = null)
         {
             _totalFloors = Math.Max(1, floors);
             _floors = new List<DungeonFloor>();
+
+            int dungeonSeed = seed ?? (int)(DateTime.Now.Ticks & 0x7FFFFFFF);
+            _rng = new Random(dungeonSeed);
+            _generator = new DungeonGenerator(dungeonSeed);
             _randomEvents = new RandomEventManager();
             _trading = new Trading();
 
-            // Generate all floors
             for (int i = 0; i < _totalFloors; i++)
             {
-                _floors.Add(GenerateFloor(i + 1));
+                _floors.Add(_generator.GenerateFloor(i + 1, _totalFloors));
             }
 
             _currentFloorIndex = 0;
             _currentRoom = _floors[0].StartRoom;
         }
 
-        private DungeonFloor GenerateFloor(int floorNumber)
-        {
-            var floor = new DungeonFloor(floorNumber);
-            var random = new Random();
-
-            // Generate a small branching dungeon (5-8 rooms per floor)
-            int roomCount = random.Next(5, 9);
-
-            // Create rooms in a simple layout
-            var rooms = new List<DungeonRoom> { floor.StartRoom };
-
-            for (int i = 1; i < roomCount; i++)
-            {
-                RoomType type;
-
-                // Determine room type
-                int roll = random.Next(100);
-                if (i == roomCount - 1)
-                {
-                    // Last room is boss room
-                    type = RoomType.Boss;
-                }
-                else if (roll < 50)
-                {
-                    type = RoomType.Combat;
-                }
-                else if (roll < 70)
-                {
-                    type = RoomType.Elite;
-                }
-                else if (roll < 85)
-                {
-                    type = RoomType.Treasure;
-                }
-                else
-                {
-                    type = RoomType.Empty;
-                }
-
-                var newRoom = new DungeonRoom(type);
-                rooms.Add(newRoom);
-                floor.AllRooms.Add(newRoom);
-            }
-
-            // Connect rooms randomly with occasional hallways
-            for (int i = 0; i < rooms.Count - 1; i++)
-            {
-                var room = rooms[i];
-                var nextRoom = rooms[i + 1];
-
-                // Pick a random direction
-                var directions = new[] { "north", "south", "east", "west" };
-                var dir = directions[random.Next(directions.Length)];
-                var oppositeDir = GetOppositeDirection(dir);
-
-                // 40% chance to add a hallway between rooms
-                if (random.Next(100) < 40)
-                {
-                    var hallway = new DungeonRoom(RoomType.Empty, LocationType.Hallway);
-                    floor.AllRooms.Add(hallway);
-                    room.Exits[dir] = hallway;
-                    hallway.Exits[oppositeDir] = room;
-                    hallway.Exits[dir] = nextRoom;
-                    nextRoom.Exits[oppositeDir] = hallway;
-                }
-                else
-                {
-                    // Direct connection
-                    room.Exits[dir] = nextRoom;
-                    nextRoom.Exits[oppositeDir] = room;
-                }
-            }
-
-            // Add some additional connections for branching
-            if (rooms.Count >= 4)
-            {
-                for (int i = 0; i < rooms.Count / 2; i++)
-                {
-                    var room1 = rooms[random.Next(rooms.Count - 1)];
-                    var room2 = rooms[random.Next(1, rooms.Count)];
-
-                    if (room1 != room2)
-                    {
-                        var directions = new[] { "north", "south", "east", "west" };
-                        var availableDirections = new List<string>();
-                        foreach (var d in directions)
-                        {
-                            if (room1.Exits[d] == null)
-                                availableDirections.Add(d);
-                        }
-
-                        if (availableDirections.Count > 0)
-                        {
-                            var dir = availableDirections[random.Next(availableDirections.Count)];
-                            var oppositeDir = GetOppositeDirection(dir);
-
-                            if (room2.Exits[oppositeDir] == null)
-                            {
-                                room1.Exits[dir] = room2;
-                                room2.Exits[oppositeDir] = room1;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Set boss room
-            floor.BossRoom = rooms[rooms.Count - 1];
-
-            // Add stairs if not last floor
-            if (floorNumber < _totalFloors)
-            {
-                // Add stairs down to a random cleared room (not boss room)
-                var stairsRoom = new DungeonRoom(RoomType.Stairs);
-                floor.StairsDown = stairsRoom;
-                floor.AllRooms.Add(stairsRoom);
-
-                // Connect stairs to a random room
-                var connectRoom = rooms[random.Next(Math.Max(1, rooms.Count - 1))];
-                var directions = new[] { "north", "south", "east", "west" };
-                var availableDirections = new List<string>();
-                foreach (var d in directions)
-                {
-                    if (connectRoom.Exits[d] == null)
-                        availableDirections.Add(d);
-                }
-
-                if (availableDirections.Count > 0)
-                {
-                    var dir = availableDirections[random.Next(availableDirections.Count)];
-                    var oppositeDir = GetOppositeDirection(dir);
-                    connectRoom.Exits[dir] = stairsRoom;
-                    stairsRoom.Exits[oppositeDir] = connectRoom;
-                }
-            }
-
-            return floor;
-        }
-
-        private string GetOppositeDirection(string direction)
-        {
-            return direction switch
-            {
-                "north" => "south",
-                "south" => "north",
-                "east" => "west",
-                "west" => "east",
-                _ => "north"
-            };
-        }
 
         private string GetHallwayDescription()
         {
-            var descriptions = new[]
-            {
-                "The corridor is damp and covered in moss.",
-                "Torches flicker along the stone walls.",
-                "You hear water dripping in the distance.",
-                "Ancient carvings adorn the walls.",
-                "The air grows cold and still.",
-                "Cobwebs hang from the ceiling.",
-                "Your footsteps echo through the passage.",
-                "A musty smell fills the air.",
-                "The walls are lined with old bones.",
-                "Strange symbols glow faintly on the floor."
-            };
-            return descriptions[_rng.Next(descriptions.Length)];
+            return _generator.GetHallwayDescription();
         }
 
         private string GetRoomAtmosphere(RoomType type, int floorNumber)
         {
-            return type switch
-            {
-                RoomType.Empty => _rng.Next(4) switch
-                {
-                    0 => "The room is quiet and peaceful. A safe haven.",
-                    1 => "Sunlight streams through cracks in the ceiling. You can rest here.",
-                    2 => "An abandoned campsite sits in the corner. This seems safe.",
-                    _ => "The room feels unusually calm. A good place to catch your breath."
-                },
-                RoomType.Combat => _rng.Next(4) switch
-                {
-                    0 => "Blood stains mark the floor. Something dangerous lurks here.",
-                    1 => "You hear growling ahead. Combat is inevitable.",
-                    2 => "The smell of death fills the air. Enemies await.",
-                    _ => "Claw marks scar the walls. Prepare for battle."
-                },
-                RoomType.Elite => _rng.Next(4) switch
-                {
-                    0 => "The air crackles with malevolent energy. A powerful foe awaits.",
-                    1 => "Skulls are piled in the corners. Something formidable dwells here.",
-                    2 => "The temperature drops sharply. You sense a dangerous presence.",
-                    _ => "Weapons and armor litter the ground. Many have failed here."
-                },
-                RoomType.Treasure => _rng.Next(4) switch
-                {
-                    0 => "A ornate chest sits in the center of the room, gleaming with promise.",
-                    1 => "Gold coins glitter in the torchlight. Treasure awaits!",
-                    2 => "You spot a locked chest covered in dust and cobwebs.",
-                    _ => "Precious items are scattered across the floor. Someone left in a hurry."
-                },
-                RoomType.Boss => _rng.Next(3) switch
-                {
-                    0 => $"A massive chamber opens before you. The Floor {floorNumber} Guardian awaits on a throne of bones.",
-                    1 => $"The room trembles with dark power. The master of Floor {floorNumber} prepares to defend their domain.",
-                    _ => $"Torches ignite around the perimeter. The Floor {floorNumber} Boss has been expecting you."
-                },
-                RoomType.Stairs => _rng.Next(3) switch
-                {
-                    0 => "Ancient stairs spiral downward into darkness.",
-                    1 => "A stone staircase descends deeper into the dungeon.",
-                    _ => "Worn steps lead to the next floor below."
-                },
-                _ => "The room is unremarkable."
-            };
+            return _generator.GetRoomAtmosphere(type, floorNumber);
         }
 
         // Main exploration loop

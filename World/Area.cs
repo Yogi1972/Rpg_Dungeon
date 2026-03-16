@@ -17,6 +17,7 @@ namespace Rpg_Dungeon
         public bool IsUnlocked { get; set; }
         public List<DungeonLocation> Dungeons { get; }
         public List<QuestSpot> QuestSpots { get; }
+        public List<string> EnemyCampNames { get; }
         public Weather? Weather { get; private set; }
         public TimeOfDay? TimeTracker { get; private set; }
 
@@ -32,6 +33,7 @@ namespace Rpg_Dungeon
             IsUnlocked = isUnlocked;
             Dungeons = new List<DungeonLocation>();
             QuestSpots = new List<QuestSpot>();
+            EnemyCampNames = new List<string>();
         }
 
         #endregion
@@ -160,7 +162,7 @@ namespace Rpg_Dungeon
             }
 
             Console.WriteLine($"\n🏰 Entering {selectedDungeon.Name}...");
-            var dungeon = new Dungeon(selectedDungeon.Floors);
+            var dungeon = new Dungeon(selectedDungeon.Floors, selectedDungeon.Seed);
             dungeon.Explore(party, journal, questBoard, bountyBoard, achievementTracker);
 
             // Mark dungeon as completed
@@ -224,13 +226,15 @@ namespace Rpg_Dungeon
         public int RecommendedLevel { get; }
         public int Floors { get; }
         public bool IsCompleted { get; set; }
+        public int Seed { get; }
 
-        public DungeonLocation(string name, int recommendedLevel, int floors)
+        public DungeonLocation(string name, int recommendedLevel, int floors, int? seed = null)
         {
             Name = name;
             RecommendedLevel = recommendedLevel;
             Floors = floors;
             IsCompleted = false;
+            Seed = seed ?? (name.GetHashCode() ^ recommendedLevel);
         }
     }
 
