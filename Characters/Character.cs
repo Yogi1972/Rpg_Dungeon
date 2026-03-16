@@ -11,7 +11,7 @@ namespace Night.Characters
     internal abstract class Character
     {
         #region Properties
-
+        // Basic character properties
         public string Name { get; set; }
         public int Health { get; protected set; }
         public int MaxHealth { get; protected set; }
@@ -23,7 +23,7 @@ namespace Night.Characters
         public int Agility { get; protected set; }
         public int Intelligence { get; protected set; }
         public int ArmorRating { get; protected set; }
-
+        // Derived properties
         public bool IsAlive => Health > 0;
 
         public Inventory Inventory { get; }
@@ -59,7 +59,7 @@ namespace Night.Characters
         #endregion
 
         #region Constructor
-
+        // Protected constructor to prevent direct instantiation of Character class
         protected Character(string name)
         {
             Name = name;
@@ -79,7 +79,7 @@ namespace Night.Characters
         #endregion
 
         #region Stats and Progression
-
+        // Method to apply racial bonuses to the character's base stats (called during character creation)
         public void ApplyRaceBonuses(Race race)
         {
             MaxHealth += race.HealthBonus;
@@ -93,7 +93,7 @@ namespace Night.Characters
             Intelligence += race.IntelligenceBonus;
             ArmorRating += race.ArmorBonus;
         }
-
+        // Method to restore character progress (used when loading a saved game)
         public void RestoreProgress(int level, int experience, int health, int maxHealth, int mana, int maxMana, int stamina, int maxStamina, int str, int agi, int intel, int ar = 0)
         {
             Level = Math.Max(1, level);
@@ -114,7 +114,7 @@ namespace Night.Characters
 
         #region Stat Calculations
 
-        public int GetTotalStrength()
+        public int GetTotalStrength()// Calculate total strength including equipment and skill bonuses
         {
             int total = Strength;
             if (Inventory.EquippedWeapon != null) total += Inventory.EquippedWeapon.StrengthBonus;
@@ -128,7 +128,7 @@ namespace Night.Characters
             return total;
         }
 
-        public int GetTotalAgility()
+        public int GetTotalAgility()// Calculate total agility including equipment and skill bonuses
         {
             int total = Agility;
             if (Inventory.EquippedWeapon != null) total += Inventory.EquippedWeapon.AgilityBonus;
@@ -142,7 +142,7 @@ namespace Night.Characters
             return total;
         }
 
-        public int GetTotalIntelligence()
+        public int GetTotalIntelligence()// Calculate total intelligence including equipment and skill bonuses
         {
             int total = Intelligence;
             if (Inventory.EquippedWeapon != null) total += Inventory.EquippedWeapon.IntelligenceBonus;
@@ -156,7 +156,7 @@ namespace Night.Characters
             return total;
         }
 
-        public int GetTotalMaxHP()
+        public int GetTotalMaxHP()// Calculate total max health including equipment and skill bonuses
         {
             int total = MaxHealth;
             if (Inventory.EquippedWeapon != null) total += Inventory.EquippedWeapon.MaxHPBonus;
@@ -170,7 +170,7 @@ namespace Night.Characters
             return total;
         }
 
-        public int GetTotalMaxMana()
+        public int GetTotalMaxMana()// Calculate total max mana including equipment and skill bonuses
         {
             int total = MaxMana;
             if (Inventory.EquippedWeapon != null) total += Inventory.EquippedWeapon.MaxManaBonus;
@@ -184,7 +184,7 @@ namespace Night.Characters
             return total;
         }
 
-        public int GetTotalMaxStamina()
+        public int GetTotalMaxStamina()// Calculate total max stamina including equipment and skill bonuses
         {
             int total = MaxStamina;
             if (Inventory.EquippedWeapon != null) total += Inventory.EquippedWeapon.MaxStaminaBonus;
@@ -198,7 +198,7 @@ namespace Night.Characters
             return total;
         }
 
-        public int GetTotalArmorRating()
+        public int GetTotalArmorRating()// Calculate total armor rating including equipment and skill bonuses, and apply combat stance modifiers
         {
             int total = ArmorRating;
             if (Inventory.EquippedWeapon != null) total += Inventory.EquippedWeapon.ArmorBonus;
@@ -225,14 +225,14 @@ namespace Night.Characters
             if (amount <= 0) return;
 
             // Apply status effect modifiers
-            double statusMultiplier = StatusEffectManager.GetDamageTakenModifier(this);
-            if (statusMultiplier != 1.0)
+            double statusMultiplier = StatusEffectManager.GetDamageTakenModifier(this);// e.g. Vulnerable might increase damage taken by 25% (1.25 multiplier)
+            if (statusMultiplier != 1.0)// Only display if there's a change
             {
-                int modifiedAmount = (int)(amount * statusMultiplier);
-                if (modifiedAmount != amount)
+                int modifiedAmount = (int)(amount * statusMultiplier);// Round down to nearest whole number
+                if (modifiedAmount != amount)// Only display if the modified amount is different
                 {
-                    Console.Write($" [Vulnerable: {amount} → {modifiedAmount}]");
-                    amount = modifiedAmount;
+                    Console.Write($" [Vulnerable: {amount} → {modifiedAmount}]");// Show original and modified damage
+                    amount = modifiedAmount;// Use modified damage for further calculations
                 }
             }
 

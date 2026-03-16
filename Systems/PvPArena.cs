@@ -169,7 +169,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine();
 
                 // Fighter 1 attacks
-                int roll1 = Combat.RollD20();
+                int roll1 = CombatSystem.RollD20();
                 int damage1 = CalculateDuelDamage(fighter1, roll1);
 
                 if (roll1 == 20)
@@ -196,7 +196,7 @@ namespace Rpg_Dungeon
                 if (fighter2.Health <= 0) break;
 
                 // Fighter 2 attacks
-                int roll2 = Combat.RollD20();
+                int roll2 = CombatSystem.RollD20();
                 int damage2 = CalculateDuelDamage(fighter2, roll2);
 
                 if (roll2 == 20)

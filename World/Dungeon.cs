@@ -427,7 +427,7 @@ namespace Rpg_Dungeon
             Console.WriteLine($"Level {mob.Level} {mob.Name} {rank}");
             Console.WriteLine($"HP: {mob.Health} | STR: {mob.Strength} | AGI: {mob.Agility}");
 
-            bool victory = Combat.RunEncounter(party, mob);
+            bool victory = CombatSystem.RunEncounter(party, mob);
 
             if (victory)
             {
