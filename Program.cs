@@ -78,19 +78,34 @@ namespace Rpg_Dungeon
         {
             try
             {
+                Console.WriteLine("🔍 Checking for updates...");
                 var updateInfo = await UpdateChecker.CheckForUpdatesAsync();
 
-                if (updateInfo != null && UpdateChecker.IsNewerVersion(updateInfo))
+                if (updateInfo == null)
                 {
-                    // Store update information for display in title screen or options menu
-                    Console.WriteLine($"\n🎉 Update available: v{updateInfo.MajorVersion}.{updateInfo.MinorVersion}.{updateInfo.PatchVersion}");
-                    Console.WriteLine($"   Visit {VersionControl.GitHubReleaseUrl} to download.");
+                    Console.WriteLine("⚠️  Unable to check for updates (network issue)");
+                }
+                else if (UpdateChecker.IsNewerVersion(updateInfo))
+                {
+                    Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
+                    Console.WriteLine("║               🎉 NEW UPDATE AVAILABLE! 🎉                       ║");
+                    Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
+                    Console.WriteLine($"📦 Latest Version: v{updateInfo.MajorVersion}.{updateInfo.MinorVersion}.{updateInfo.PatchVersion}");
+                    Console.WriteLine($"📌 Your Version: v{VersionControl.FullVersion}");
+                    Console.WriteLine($"💡 Visit {VersionControl.GitHubReleaseUrl} to download!");
+                    Console.WriteLine();
+                    Thread.Sleep(2000); // Give user time to see the message
+                }
+                else
+                {
+                    Console.WriteLine("✅ No updates available - You're running the latest version!");
                 }
             }
             catch (Exception ex)
             {
                 // Silently log update check failures - non-critical
                 ErrorLogger.LogWarning($"Update check failed: {ex.Message}", "Non-critical - continuing without update check");
+                Console.WriteLine("⚠️  Update check failed (continuing anyway)");
             }
         }
     }
