@@ -294,7 +294,7 @@ namespace Rpg_Dungeon
             {
                 string status = chapter.IsCompleted ? "✅" : (chapter.ChapterNumber == CurrentChapter ? "📍" : "🔒");
                 Console.WriteLine($"\n{status} Chapter {chapter.ChapterNumber}: {chapter.Title}");
-                
+
                 if (chapter.IsCompleted)
                 {
                     Console.WriteLine($"   {chapter.Description}");

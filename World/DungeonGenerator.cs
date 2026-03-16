@@ -49,7 +49,7 @@ namespace Rpg_Dungeon
             }
 
             int roll = _rng.Next(100);
-            
+
             if (roll < 50) return RoomType.Combat;
             if (roll < 70) return RoomType.Elite;
             if (roll < 85) return RoomType.Treasure;

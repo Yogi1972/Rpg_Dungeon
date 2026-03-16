@@ -10,7 +10,7 @@ namespace Rpg_Dungeon
         public static void Open(List<Character> party)
         {
             var enchanters = party.Where(p => ProfessionManager.CanCraftWithProfession(p, CraftingProfession.Enchanting)).ToList();
-            
+
             if (enchanters.Count == 0)
             {
                 Console.WriteLine("\n⚠️ No party members have Enchanting profession!");
@@ -31,7 +31,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine("5) View Enchanting Recipes");
                 Console.WriteLine("0) Back");
                 Console.Write("Choice: ");
-                
+
                 var choice = Console.ReadLine() ?? string.Empty;
 
                 switch (choice.Trim())

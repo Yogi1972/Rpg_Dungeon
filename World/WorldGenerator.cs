@@ -226,7 +226,7 @@ namespace Rpg_Dungeon
             return enemyCamps;
         }
 
-        private List<EnemyCamp> GenerateEnemyCampsByDifficulty(EnemyCampDifficulty difficulty, 
+        private List<EnemyCamp> GenerateEnemyCampsByDifficulty(EnemyCampDifficulty difficulty,
             int minLevel, int maxLevel, int minCount, int maxCount)
         {
             var camps = new List<EnemyCamp>();
@@ -433,7 +433,7 @@ namespace Rpg_Dungeon
                     var loc2 = allLocations[j];
 
                     int distance = CalculateDistance(loc1, loc2, distanceRng);
-                    
+
                     loc1.DistancesToOtherLocations[loc2.Name] = distance;
                     loc2.DistancesToOtherLocations[loc1.Name] = distance;
                 }

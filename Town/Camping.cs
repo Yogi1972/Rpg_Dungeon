@@ -247,17 +247,17 @@ namespace Rpg_Dungeon
             if (rand.NextDouble() <= chance)
             {
                 // Expanded foraging results including torch materials
-                var finds = new[] 
-                { 
+                var finds = new[]
+                {
                     "edible mushrooms", "herbs", "a small pouch of coins", "a useful scrap of cloth",
-                    "Wood", "Cloth", "Oil Flask", "Iron Ore", "Copper Ore", 
+                    "Wood", "Cloth", "Oil Flask", "Iron Ore", "Copper Ore",
                     "Leather Scraps", "Wolf Pelt", "Bone", "Fang"
                 };
                 var found = finds[rand.Next(finds.Length)];
                 Console.WriteLine($"✅ Success! You find {found} while foraging.");
 
                 // Add the foraged item as a GenericItem to a random party member's inventory
-                if (found == "Wood" || found == "Cloth" || found == "Oil Flask" || 
+                if (found == "Wood" || found == "Cloth" || found == "Oil Flask" ||
                     found == "Iron Ore" || found == "Copper Ore" || found == "Leather Scraps" ||
                     found == "Wolf Pelt" || found == "Bone" || found == "Fang")
                 {
@@ -317,29 +317,29 @@ namespace Rpg_Dungeon
             // Map location names to terrain types based on region
             var locationLower = locationName.ToLower();
 
-            if (locationLower.Contains("ironforge") || locationLower.Contains("mountain") || 
+            if (locationLower.Contains("ironforge") || locationLower.Contains("mountain") ||
                 locationLower.Contains("stormwatch") || locationLower.Contains("cliff") ||
                 locationLower.Contains("eagle") || locationLower.Contains("cave") ||
                 locationLower.Contains("frost"))
                 return TerrainType.Mountains;
 
-            if (locationLower.Contains("mysthaven") || locationLower.Contains("crystalshore") || 
+            if (locationLower.Contains("mysthaven") || locationLower.Contains("crystalshore") ||
                 locationLower.Contains("coast") || locationLower.Contains("seaside") ||
                 locationLower.Contains("fisher") || locationLower.Contains("ferry"))
                 return TerrainType.Water;
 
-            if (locationLower.Contains("sunspire") || locationLower.Contains("desert") || 
+            if (locationLower.Contains("sunspire") || locationLower.Contains("desert") ||
                 locationLower.Contains("oasis") || locationLower.Contains("dune") ||
                 locationLower.Contains("nomad") || locationLower.Contains("sand"))
                 return TerrainType.Desert;
 
-            if (locationLower.Contains("shadowkeep") || locationLower.Contains("forest") || 
+            if (locationLower.Contains("shadowkeep") || locationLower.Contains("forest") ||
                 locationLower.Contains("hunter") || locationLower.Contains("woodcutter") ||
                 locationLower.Contains("druid") || locationLower.Contains("ranger") ||
                 locationLower.Contains("pinewood"))
                 return TerrainType.Forest;
 
-            if (locationLower.Contains("emberpeak") || locationLower.Contains("volcanic") || 
+            if (locationLower.Contains("emberpeak") || locationLower.Contains("volcanic") ||
                 locationLower.Contains("lava") || locationLower.Contains("ash"))
                 return TerrainType.Volcanic;
 

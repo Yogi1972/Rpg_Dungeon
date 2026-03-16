@@ -158,7 +158,7 @@ namespace Rpg_Dungeon
             Console.WriteLine("╚════════════════════════════════════════╝");
 
             var categories = Enum.GetValues(typeof(AchievementCategory)).Cast<AchievementCategory>();
-            
+
             foreach (var category in categories)
             {
                 var categoryAchievements = _achievements.Where(a => a.Category == category).ToList();
@@ -193,7 +193,7 @@ namespace Rpg_Dungeon
         public void ClaimRewards(Character character)
         {
             var unclaimedAchievements = _achievements.Where(a => a.IsUnlocked && !_claimedAchievements.Contains(a.Name)).ToList();
-            
+
             if (unclaimedAchievements.Count == 0)
             {
                 Console.WriteLine("No unclaimed achievement rewards!");
@@ -273,7 +273,7 @@ namespace Rpg_Dungeon
         {
             var pennyPincher = _achievements.First(a => a.Name == "Penny Pincher");
             var wealthy = _achievements.First(a => a.Name == "Wealthy Adventurer");
-            
+
             if (!pennyPincher.IsUnlocked && totalGold >= 1000)
                 pennyPincher.AddProgress(1000);
             if (!wealthy.IsUnlocked && totalGold >= 5000)

@@ -184,7 +184,7 @@ namespace Rpg_Dungeon
             Console.WriteLine($"📦 Available resources in {currentTerrain} terrain:");
 
             var availableResources = ResourceDatabase.Where(r => r.Terrain == currentTerrain).ToList();
-            
+
             if (availableResources.Count == 0)
             {
                 Console.WriteLine("No resources available in this terrain.");
@@ -210,7 +210,7 @@ namespace Rpg_Dungeon
                 foreach (var res in professionResources)
                 {
                     var icon = ProfessionManager.GetProfessionIcon(res.RequiredProfession);
-                    var hasProf = party.Any(p => p.PrimaryProfession == res.RequiredProfession || 
+                    var hasProf = party.Any(p => p.PrimaryProfession == res.RequiredProfession ||
                                                   p.SecondaryProfession == res.RequiredProfession);
                     var marker = hasProf ? "✓" : "✗";
                     Console.WriteLine($"   {marker} {res.Name} - {icon} {res.RequiredProfession} (Success: {res.BaseSuccessRate}%)");
@@ -222,8 +222,8 @@ namespace Rpg_Dungeon
             {
                 var member = party[i];
                 var professions = ProfessionManager.GetCharacterProfessions(member);
-                var profText = professions.Count > 0 
-                    ? $" [{string.Join(", ", professions.Select(p => ProfessionManager.GetProfessionIcon(p) + p.ToString()))}]" 
+                var profText = professions.Count > 0
+                    ? $" [{string.Join(", ", professions.Select(p => ProfessionManager.GetProfessionIcon(p) + p.ToString()))}]"
                     : " [No professions]";
                 Console.WriteLine($"{i + 1}) {member.Name}{profText} - Agi: {member.Agility}");
             }
@@ -249,7 +249,7 @@ namespace Rpg_Dungeon
 
             var availableResources = ResourceDatabase
                 .Where(r => r.Terrain == terrain)
-                .Where(r => r.RequiredProfession == CraftingProfession.None || 
+                .Where(r => r.RequiredProfession == CraftingProfession.None ||
                            gatherer.PrimaryProfession == r.RequiredProfession ||
                            gatherer.SecondaryProfession == r.RequiredProfession)
                 .ToList();
@@ -295,7 +295,7 @@ namespace Rpg_Dungeon
             foreach (var (name, amount) in foundResources)
             {
                 Console.WriteLine($"   📦 {amount}x {name}");
-                
+
                 // Add to inventory
                 for (int i = 0; i < amount; i++)
                 {
@@ -312,7 +312,7 @@ namespace Rpg_Dungeon
         public static TerrainType DetermineCurrentTerrain(int x, int y)
         {
             // Match the terrain generation logic from FogOfWarMap
-            
+
             // Northwest Mountains (10-35x, 0-15y)
             if (x >= 10 && x <= 35 && y >= 0 && y <= 15)
             {
@@ -420,8 +420,8 @@ namespace Rpg_Dungeon
                 Console.WriteLine($"\n{GetTerrainDescription(terrain)}:");
                 foreach (var res in resources.OrderByDescending(r => r.BaseSuccessRate))
                 {
-                    var profIcon = res.RequiredProfession != CraftingProfession.None 
-                        ? $" - {ProfessionManager.GetProfessionIcon(res.RequiredProfession)} {res.RequiredProfession}" 
+                    var profIcon = res.RequiredProfession != CraftingProfession.None
+                        ? $" - {ProfessionManager.GetProfessionIcon(res.RequiredProfession)} {res.RequiredProfession}"
                         : " - Anyone";
                     Console.WriteLine($"   • {res.Name}{profIcon} ({res.BaseSuccessRate}% base)");
                 }

@@ -9,9 +9,9 @@ namespace Rpg_Dungeon
     {
         public static void Open(List<Character> party)
         {
-            var alchemists = party.Where(p => ProfessionManager.CanCraftWithProfession(p, CraftingProfession.Alchemy) || 
+            var alchemists = party.Where(p => ProfessionManager.CanCraftWithProfession(p, CraftingProfession.Alchemy) ||
                                              p is Mage || p is Priest).ToList();
-            
+
             if (alchemists.Count == 0)
             {
                 Console.WriteLine("\n⚠️ No party members have Alchemy profession (or Mage/Priest class)!");
@@ -34,7 +34,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine("7) View Alchemy Recipes");
                 Console.WriteLine("0) Back");
                 Console.Write("Choice: ");
-                
+
                 var choice = Console.ReadLine() ?? string.Empty;
 
                 switch (choice.Trim())

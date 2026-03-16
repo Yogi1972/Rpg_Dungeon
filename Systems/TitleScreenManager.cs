@@ -22,13 +22,35 @@ namespace Rpg_Dungeon
                 Console.WriteLine("\n\n\n");
             }
 
+            // Check if player wants to see the opening hook
+            if (OpeningHook.ShouldShowOpening())
+            {
+                OpeningHook.ShowOpeningSequence();
+
+                try
+                {
+                    Console.Clear();
+                }
+                catch
+                {
+                    Console.WriteLine("\n\n\n");
+                }
+            }
+
+            var originalColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
             Console.WriteLine("║                                                                  ║");
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("║            ⚔️  RPG DUNGEON CRAWLER  ⚔️                          ║");
+            Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("║                                                                  ║");
+            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("║              ~ Epic Adventures Await ~                           ║");
+            Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("║                                                                  ║");
             Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
+            Console.ForegroundColor = originalColor;
             Console.WriteLine();
             Console.WriteLine("  Venture into treacherous dungeons, battle fierce monsters,");
             Console.WriteLine("  complete epic quests, and build legendary heroes!");
@@ -111,7 +133,7 @@ namespace Rpg_Dungeon
                         break;
                 }
 
-                if (choice.Trim() != "0" && choice.Trim() != "1" && choice.Trim() != "2" && 
+                if (choice.Trim() != "0" && choice.Trim() != "1" && choice.Trim() != "2" &&
                     choice.Trim() != "3" && choice.Trim() != "4")
                 {
                     Console.WriteLine();

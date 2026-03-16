@@ -225,7 +225,7 @@ namespace Rpg_Dungeon
             if (int.TryParse(Console.ReadLine(), out int choice) && choice > 0 && choice <= discovered.Count)
             {
                 var destination = discovered[choice - 1];
-                
+
                 // Check level requirement
                 if (party[0].Level < destination.RequiredLevel)
                 {
@@ -237,14 +237,14 @@ namespace Rpg_Dungeon
 
                 // Simulate travel
                 Console.WriteLine($"\n🗺️  Traveling to {destination.Name}...");
-                
+
                 if (_gameState.TimeTracker != null)
                 {
                     _gameState.TimeTracker.AdvanceTime(2); // Travel takes time
                 }
 
                 Console.ReadKey();
-                
+
                 // Enter the location
                 destination.Enter(party, _gameState);
             }
@@ -254,7 +254,7 @@ namespace Rpg_Dungeon
 
         #region Helper Methods
 
-        public void SetGameStateReferences(QuestBoard questBoard, BountyBoard bountyBoard, 
+        public void SetGameStateReferences(QuestBoard questBoard, BountyBoard bountyBoard,
                                           AchievementTracker achievementTracker, Journal journal,
                                           NPCManager npcManager, MainStoryline mainStoryline, FogOfWarMap fogOfWarMap)
         {

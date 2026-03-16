@@ -152,7 +152,17 @@ namespace Rpg_Dungeon
 
             int partyAvgLevel = aliveCount > 0 ? totalLevel / aliveCount : 1;
             string mobRank = Playerleveling.GetMobRankTitle(mob.Level, partyAvgLevel);
-            Console.Write($"Encounter begins! A Level {mob.Level} {mob.Name} {mobRank} appears (HP {mobHp})");
+
+            Console.WriteLine();
+            if (mobRank.Contains("BOSS") || mobRank.Contains("ELITE"))
+            {
+                VisualEffects.WriteDanger($"⚔️  COMBAT! A Level {mob.Level} {mob.Name} {mobRank} appears! (HP {mobHp})\n");
+            }
+            else
+            {
+                VisualEffects.WriteLineColored($"⚔️  Encounter begins! A Level {mob.Level} {mob.Name} {mobRank} appears! (HP {mobHp})", ConsoleColor.Yellow);
+            }
+            Console.WriteLine();
 
             // Reset threat levels at the start of combat
             foreach (var p in party)
@@ -248,7 +258,7 @@ namespace Rpg_Dungeon
                         Console.Write($"{member.Name} rolls d20: {roll} (+{attackStat}) against defense {targetDefense}");
                         if (roll == 1)
                         {
-                            Console.Write($"{member.Name} critically misses!");// lol this just checking to see if your character sucks or not :)
+                            VisualEffects.WriteDanger($"\n❌ {member.Name} critically misses! {VisualEffects.GetRandomMissMessage()}\n");
                             continue;
                         }
 
@@ -262,12 +272,18 @@ namespace Rpg_Dungeon
                             if (critChance > 0 && _rng.Next(1, 101) <= critChance)
                             {
                                 crit = true;
-                                Console.Write(" [SKILL CRIT!]");
+                                VisualEffects.WriteColored(" [SKILL CRIT!]", ConsoleColor.Yellow);
                             }
                         }
 
                         if (crit || total > targetDefense)
                         {
+                            if (crit)
+                            {
+                                VisualEffects.ShowCriticalHitEffect();
+                                Console.WriteLine($" {VisualEffects.GetRandomCritMessage()}");
+                            }
+
                             int baseDamage = attackStat;
                             if (member is Mage) baseDamage = member.GetTotalIntelligence();
                             else if (member is Rogue) baseDamage = member.GetTotalAgility();
@@ -339,7 +355,8 @@ namespace Rpg_Dungeon
                             }
 
                             mobHp = Math.Max(0, mobHp - finalDamage);
-                            Console.Write($"{member.Name} hits {mob.Name} for {finalDamage} damage (mob HP now {mobHp}).");
+                            VisualEffects.WriteDamage($"{member.Name} hits {mob.Name} for {finalDamage} damage! ");
+                            VisualEffects.WriteInfo($"(mob HP: {mobHp}/{mob.Health})\n");
 
                             // Generate threat based on damage dealt
                             int threat = finalDamage;
@@ -348,7 +365,7 @@ namespace Rpg_Dungeon
                         }
                         else
                         {
-                            Console.Write($"{member.Name} misses {mob.Name}.");
+                            VisualEffects.WriteInfo($"{member.Name} misses {mob.Name}. {VisualEffects.GetRandomMissMessage()}\n");
                         }
                     }
                     else if (act == "2")
@@ -426,8 +443,24 @@ namespace Rpg_Dungeon
             bool partyWon = mobHp <= 0;
             if (partyWon)
             {
-                Console.Write($"{mob.Name} was defeated!");
+                Console.WriteLine();
+                VisualEffects.ShowVictoryBanner();
+                VisualEffects.WriteSuccess($"💀 {mob.Name} was {VisualEffects.GetRandomKillMessage()}\n");
+
                 var loot = mob.DropLoot(_rng);
+
+                // Check for legendary drop (very rare!)
+                var leader = party.FirstOrDefault(p => p.IsAlive);
+                if (leader != null)
+                {
+                    var legendaryItem = LegendaryItemSystem.TryGenerateLegendaryDrop(leader.Level);
+                    if (legendaryItem != null)
+                    {
+                        LegendaryItemSystem.AnnounceItemFound(legendaryItem);
+                        leader.Inventory.AddItem(legendaryItem);
+                        VisualEffects.WriteSuccess($"✨ {leader.Name} received: {legendaryItem.Name}!\n");
+                    }
+                }
 
                 // Award experience to alive members using improved calculation
                 int xp = Playerleveling.CalculateXPReward(mob, party.Count);
@@ -454,6 +487,14 @@ namespace Rpg_Dungeon
 
                     Console.WriteLine($"{member.Name} gains {memberXP} XP!");
                     member.GainExperience(memberXP);
+
+                    // Show XP progress bar
+                    VisualEffects.DrawProgressBarLine(
+                        member.Experience,
+                        member.ExperienceToNextLevel,
+                        20,
+                        $"  {member.Name}'s XP"
+                    );
 
                     // Pet gains experience too
                     if (member.Pet != null)
@@ -527,7 +568,7 @@ namespace Rpg_Dungeon
                         member.Inventory.AddGold(memberGold);
                     }
 
-                    Console.Write($"The party receives {totalGoldAmount} gold ({goldPerMember} gold per member).");
+                    VisualEffects.WriteSuccess($"💰 The party receives {totalGoldAmount} gold ({goldPerMember} per member)!\n");
                 }
 
                 // Distribute items to party members in round-robin fashion
@@ -541,14 +582,14 @@ namespace Rpg_Dungeon
                         var receiver = party[(itemIndex + attempt) % party.Count];
                         if (receiver.Inventory.AddItem(item))
                         {
-                            Console.Write($"{receiver.Name} finds {item.Name}.");
+                            VisualEffects.WriteSuccess($"🎁 {receiver.Name} finds {item.Name}!\n");
                             itemAdded = true;
                         }
                     }
 
                     if (!itemAdded)
                     {
-                        Console.Write($"No space to pick up {item.Name}; it was left behind.");
+                        VisualEffects.WriteInfo($"❌ No space to pick up {item.Name}; it was left behind.\n");
                     }
 
                     itemIndex++;
@@ -556,7 +597,8 @@ namespace Rpg_Dungeon
             }
             else
             {
-                Console.Write("The party was defeated...");
+                VisualEffects.ShowDefeatBanner();
+                VisualEffects.WriteDanger("💀 The party was defeated...\n");
             }
 
             // Clear all status effects after combat
@@ -754,9 +796,9 @@ namespace Rpg_Dungeon
             var itemName = selectedItem.Name.ToLowerInvariant();
 
             // Healing items (potions, poultices, herbs, salves, tonics, etc.)
-            if (itemName.Contains("healing") || itemName.Contains("potion of healing") || 
-                itemName.Contains("poultice") || itemName.Contains("healing herb") || 
-                itemName.Contains("restorative") || itemName.Contains("salve") || 
+            if (itemName.Contains("healing") || itemName.Contains("potion of healing") ||
+                itemName.Contains("poultice") || itemName.Contains("healing herb") ||
+                itemName.Contains("restorative") || itemName.Contains("salve") ||
                 itemName.Contains("tonic") || itemName.Contains("bandage"))
             {
                 Console.WriteLine("Choose target to heal:");
@@ -792,7 +834,7 @@ namespace Rpg_Dungeon
             }
 
             // Mana restoration items (mana potions, crystals, etc.)
-            if (itemName.Contains("mana") || itemName.Contains("potion of mana") || 
+            if (itemName.Contains("mana") || itemName.Contains("potion of mana") ||
                 itemName.Contains("mana crystal") || itemName.Contains("arcane dust"))
             {
                 int restore = 30 + (member.Intelligence / 2);
@@ -818,7 +860,7 @@ namespace Rpg_Dungeon
             }
 
             // Antidotes and cleansing items
-            if (itemName.Contains("antidote") || itemName.Contains("cleansing") || 
+            if (itemName.Contains("antidote") || itemName.Contains("cleansing") ||
                 itemName.Contains("purifying") || itemName.Contains("blessed water"))
             {
                 Console.WriteLine($"{member.Name} uses {selectedItem.Name}. (Status effect removal not yet implemented)");
@@ -827,8 +869,8 @@ namespace Rpg_Dungeon
             }
 
             // Offensive consumables (bombs, acids, poisons)
-            if (itemName.Contains("bomb") || itemName.Contains("smoke bomb") || 
-                itemName.Contains("vial of acid") || itemName.Contains("poison vial") || 
+            if (itemName.Contains("bomb") || itemName.Contains("smoke bomb") ||
+                itemName.Contains("vial of acid") || itemName.Contains("poison vial") ||
                 itemName.Contains("oil flask"))
             {
                 int roll = RollD20();

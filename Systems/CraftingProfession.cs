@@ -43,7 +43,7 @@ namespace Rpg_Dungeon
             Console.WriteLine("        Or choose 2 production professions for versatility!");
 
             character.PrimaryProfession = SelectSingleProfession("\nSelect your PRIMARY profession (1-6): ");
-            
+
             CraftingProfession secondProfession;
             do
             {
@@ -53,7 +53,7 @@ namespace Rpg_Dungeon
                     Console.WriteLine("⚠️ You must choose a different profession!");
                 }
             } while (secondProfession == character.PrimaryProfession);
-            
+
             character.SecondaryProfession = secondProfession;
 
             Console.WriteLine($"\n✅ Professions selected:");
@@ -69,7 +69,7 @@ namespace Rpg_Dungeon
             {
                 Console.Write(prompt);
                 var choice = Console.ReadLine()?.Trim() ?? "";
-                
+
                 switch (choice)
                 {
                     case "1": return CraftingProfession.Blacksmithing;
@@ -115,7 +115,7 @@ namespace Rpg_Dungeon
 
         public static bool CanCraftWithProfession(Character character, CraftingProfession requiredProfession)
         {
-            return character.PrimaryProfession == requiredProfession || 
+            return character.PrimaryProfession == requiredProfession ||
                    character.SecondaryProfession == requiredProfession;
         }
 

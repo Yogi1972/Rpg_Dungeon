@@ -10,7 +10,7 @@ namespace Rpg_Dungeon
         public static void Open(List<Character> party)
         {
             var leatherworkers = party.Where(p => ProfessionManager.CanCraftWithProfession(p, CraftingProfession.Leatherworking)).ToList();
-            
+
             if (leatherworkers.Count == 0)
             {
                 Console.WriteLine("\n⚠️ No party members have Leatherworking profession!");
@@ -31,7 +31,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine("5) View Leatherworking Recipes");
                 Console.WriteLine("0) Back");
                 Console.Write("Choice: ");
-                
+
                 var choice = Console.ReadLine() ?? string.Empty;
 
                 switch (choice.Trim())

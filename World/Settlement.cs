@@ -237,7 +237,7 @@ namespace Rpg_Dungeon
 
             Console.WriteLine($"\nTotal cost: {totalCost} gold for {party.Count} party member(s).");
             Console.Write("Rest for the night? (y/n): ");
-            
+
             if (Console.ReadLine()?.Trim().ToLower() != "y")
             {
                 Console.WriteLine("Maybe another time.");

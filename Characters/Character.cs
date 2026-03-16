@@ -336,28 +336,27 @@ namespace Night.Characters
             ArmorRating += gains.ArmorRating;
 
             string title = Playerleveling.GetLevelTitle(Level);
-            Console.WriteLine($"\n*** {Name} leveled up to {Level} ({title})! ***");
-            Console.WriteLine($"Stat gains: {gains}");
-            Console.WriteLine($"Health, Mana, and Stamina fully restored!");
+
+            VisualEffects.ShowLevelUpAnimation();
+
+            VisualEffects.WriteLineColored($"✨ {Name} reached Level {Level}! ({title}) ✨", ConsoleColor.Cyan);
+            Console.WriteLine();
+
+            VisualEffects.WriteSuccess($"📈 Stat Gains: {gains}\n");
+            VisualEffects.WriteHealing("💚 Health, Mana, and Stamina fully restored!\n");
 
             if (SkillTree != null)
             {
                 SkillTree.AddSkillPoint();
-                Console.WriteLine($"✨ Earned 1 Skill Point! Total: {SkillTree.SkillPoints}");
+                VisualEffects.WriteLineColored($"⭐ Earned 1 Skill Point! Total: {SkillTree.SkillPoints}", ConsoleColor.Yellow);
             }
 
-            if (Level % 25 == 0)
+            if (MilestoneRewards.IsMilestone(Level))
             {
-                Console.WriteLine($"*** MILESTONE LEVEL {Level} REACHED! Bonus stats awarded! ***");
-                if (Level == 25 && !HasChampionClass)
-                {
-                    Console.WriteLine($"🏆✨ CHAMPION CLASS NOW AVAILABLE! Visit the town to ascend to a Champion Class! 🏆✨");
-                }
+                MilestoneRewards.AwardMilestoneReward(this);
             }
-            else if (Level == Playerleveling.MaxLevel)
-            {
-                Console.WriteLine($"*** {Name} has reached the MAXIMUM LEVEL! You are ASCENDED! ***");
-            }
+
+            Console.WriteLine();
         }
 
         #endregion

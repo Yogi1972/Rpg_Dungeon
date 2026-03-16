@@ -152,6 +152,31 @@ namespace Rpg_Dungeon
                 {
                     DisplayWorldInfo();
                 }
+                else if (choice.Trim() == "18")
+                {
+                    PvPArena.OpenArena(party);
+                }
+                else if (choice.Trim() == "19")
+                {
+                    SecretDiscovery.ShowDiscoveredSecrets();
+                    Console.WriteLine("\nPress any key to continue...");
+                    Console.ReadKey(true);
+                }
+                else if (choice.Trim() == "20")
+                {
+                    // Secret code entry
+                    Console.Write("\nEnter code: ");
+                    var code = Console.ReadLine() ?? string.Empty;
+                    if (!SecretDiscovery.CheckSecretCode(code, party))
+                    {
+                        VisualEffects.WriteInfo("Invalid code.\n");
+                    }
+                    System.Threading.Thread.Sleep(1000);
+                }
+                else if (choice.Trim() == "21")
+                {
+                    AchievementSummary.ShowHeroicSummary(party);
+                }
                 else if (choice.Trim() == "0")
                 {
                     Console.Write("Are you sure you want to quit the game? (y/n): ");
@@ -174,7 +199,9 @@ namespace Rpg_Dungeon
 
         private static void DisplayMainMenu(Multiplayer multiplayer)
         {
-            Console.WriteLine("\nMain Menu:");
+            Console.WriteLine("\n╔═══════════════════════════════════════════════════════════╗");
+            VisualEffects.WriteLineColored("║                    MAIN MENU                              ║", ConsoleColor.Cyan);
+            Console.WriteLine("╚═══════════════════════════════════════════════════════════╝");
             Console.WriteLine("1) View party");
             Console.WriteLine("2) View inventory / equip items");
             Console.WriteLine("3) Set up camp");
@@ -195,20 +222,47 @@ namespace Rpg_Dungeon
             Console.WriteLine("15) View Fog of War Map 🗺️");
             Console.WriteLine("16) View Story Progress 📖");
             Console.WriteLine("17) View World Info 🌍");
+            VisualEffects.WriteLineColored("18) ⚔️  PvP Arena (NEW!)", ConsoleColor.Red);
+            VisualEffects.WriteLineColored("19) 🔍 Secrets Discovered", ConsoleColor.Magenta);
+            VisualEffects.WriteLineColored("20) 🎮 Enter Secret Code", ConsoleColor.DarkMagenta);
+            VisualEffects.WriteLineColored("21) 🏆 Achievement Summary", ConsoleColor.Yellow);
             Console.WriteLine("0) Quit");
             Console.Write("Choose: ");
         }
 
         private static void HandleViewParty(List<Character> party, Multiplayer multiplayer)
         {
-            Console.WriteLine("Party status:");
+            Console.WriteLine("\n╔═══════════════════════════════════════════════════════════╗");
+            VisualEffects.WriteLineColored("║                    PARTY STATUS                           ║", ConsoleColor.Cyan);
+            Console.WriteLine("╚═══════════════════════════════════════════════════════════╝\n");
+
             foreach (var p in party)
             {
                 string title = Playerleveling.GetLevelTitle(p.Level);
                 string playerTag = multiplayer.IsSessionActive() ? $" {multiplayer.GetPlayerTag(p)}" : "";
-                Console.WriteLine($"\n- {p.Name}{playerTag} (Lv {p.Level} {title}) {p.GetType().Name}");
-                Console.WriteLine($"  HP: {p.Health}/{p.GetTotalMaxHP()} | Mana: {p.Mana}/{p.GetTotalMaxMana()} | Gold: {p.Inventory.Gold}");
-                Console.WriteLine($"  Stats - Str: {p.GetTotalStrength()} ({p.Strength}+{p.GetTotalStrength()-p.Strength}), Agi: {p.GetTotalAgility()} ({p.Agility}+{p.GetTotalAgility()-p.Agility}), Int: {p.GetTotalIntelligence()} ({p.Intelligence}+{p.GetTotalIntelligence()-p.Intelligence})");
+
+                VisualEffects.WriteLineColored($"▸ {p.Name}{playerTag} (Lv {p.Level} {title}) {p.GetType().Name}", ConsoleColor.Yellow);
+
+                // Health bar
+                Console.Write("  ");
+                VisualEffects.DrawProgressBarLine(p.Health, p.GetTotalMaxHP(), 25, "HP");
+
+                // Mana bar (for casters)
+                if (p is Mage || p is Priest)
+                {
+                    Console.Write("  ");
+                    VisualEffects.DrawProgressBarLine(p.Mana, p.GetTotalMaxMana(), 25, "MP");
+                }
+
+                // Stamina bar (for physical classes)
+                if (p is Warrior || p is Rogue)
+                {
+                    Console.Write("  ");
+                    VisualEffects.DrawProgressBarLine(p.Stamina, p.GetTotalMaxStamina(), 25, "SP");
+                }
+
+                VisualEffects.WriteInfo($"  💰 Gold: {p.Inventory.Gold}\n");
+                Console.WriteLine($"  Stats - Str: {p.GetTotalStrength()} ({p.Strength}+{p.GetTotalStrength() - p.Strength}), Agi: {p.GetTotalAgility()} ({p.Agility}+{p.GetTotalAgility() - p.Agility}), Int: {p.GetTotalIntelligence()} ({p.Intelligence}+{p.GetTotalIntelligence() - p.Intelligence})");
 
                 Console.WriteLine("  Equipment:");
                 EquipmentDisplayHelper.DisplayEquippedItem("Weapon", p.Inventory.EquippedWeapon);
@@ -218,6 +272,7 @@ namespace Rpg_Dungeon
                 EquipmentDisplayHelper.DisplayEquippedItem("Ring 1", p.Inventory.EquippedRing1);
                 EquipmentDisplayHelper.DisplayEquippedItem("Ring 2", p.Inventory.EquippedRing2);
                 EquipmentDisplayHelper.DisplayOffHandItem(p.Inventory.EquippedOffHand);
+                Console.WriteLine();
             }
 
             Console.Write("\nView detailed level progress for a character? (Enter 1-{0} or 0 to skip): ", party.Count);
@@ -237,10 +292,10 @@ namespace Rpg_Dungeon
                 Console.WriteLine($"{i + 1}) {party[i].Name}{playerTag}");
             }
             var s = Console.ReadLine() ?? string.Empty;
-            if (!int.TryParse(s, out var idx) || idx < 1 || idx > party.Count) 
-            { 
-                Console.WriteLine("Invalid."); 
-                return; 
+            if (!int.TryParse(s, out var idx) || idx < 1 || idx > party.Count)
+            {
+                Console.WriteLine("Invalid.");
+                return;
             }
             var member = party[idx - 1];
 
@@ -301,13 +356,13 @@ namespace Rpg_Dungeon
             Console.WriteLine("Enter slot number of equipment to equip:");
             var si = Console.ReadLine() ?? string.Empty;
             var slots = member.Inventory.Slots;
-            
-            if (!int.TryParse(si, out var sidx) || sidx < 1 || sidx > slots.Count) 
-            { 
-                Console.WriteLine("Invalid slot."); 
-                return; 
+
+            if (!int.TryParse(si, out var sidx) || sidx < 1 || sidx > slots.Count)
+            {
+                Console.WriteLine("Invalid slot.");
+                return;
             }
-            
+
             var it = slots[sidx - 1];
             if (it is Equipment equipment)
             {
@@ -359,7 +414,7 @@ namespace Rpg_Dungeon
             Console.WriteLine("5) Ring 1");
             Console.WriteLine("6) Ring 2");
             var us = Console.ReadLine() ?? string.Empty;
-            
+
             EquipmentSlot? slotToUnequip = us.Trim() switch
             {
                 "1" => EquipmentSlot.Weapon,
@@ -389,19 +444,19 @@ namespace Rpg_Dungeon
             Console.WriteLine("Enter slot number of backpack to equip:");
             var si = Console.ReadLine() ?? string.Empty;
             var slots = member.Inventory.Slots;
-            
-            if (!int.TryParse(si, out var sidx) || sidx < 1 || sidx > slots.Count) 
-            { 
-                Console.WriteLine("Invalid slot."); 
-                return; 
+
+            if (!int.TryParse(si, out var sidx) || sidx < 1 || sidx > slots.Count)
+            {
+                Console.WriteLine("Invalid slot.");
+                return;
             }
-            
+
             var it = slots[sidx - 1];
             if (it is Backpack bp)
             {
-                if (member.Inventory.EquipBackpack(bp)) 
-                    Console.WriteLine("Backpack equipped."); 
-                else 
+                if (member.Inventory.EquipBackpack(bp))
+                    Console.WriteLine("Backpack equipped.");
+                else
                     Console.WriteLine("Failed to equip backpack.");
             }
             else

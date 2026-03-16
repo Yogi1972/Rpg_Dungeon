@@ -194,7 +194,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine($"\n{i + 1}) [{q.Difficulty}] {q.Name}{locationInfo}");
                 Console.WriteLine($"   {q.Description}");
                 Console.WriteLine($"   Type: {q.Type} - {q.ObjectiveName} x{q.ObjectiveCount}");
-                Console.WriteLine($"   Rewards: {q.GoldReward}g, {q.ExperienceReward} XP" + 
+                Console.WriteLine($"   Rewards: {q.GoldReward}g, {q.ExperienceReward} XP" +
                                 (q.EquipmentReward != null ? $", {q.EquipmentReward.Name}" : ""));
             }
         }
@@ -215,7 +215,7 @@ namespace Rpg_Dungeon
                 Console.WriteLine($"\n{i + 1}) [{q.Difficulty}] {q.Name}{locationInfo}");
                 Console.WriteLine($"   {q.Description}");
                 Console.WriteLine($"   Type: {q.Type} - {q.ObjectiveName} x{q.ObjectiveCount}");
-                Console.WriteLine($"   Rewards: {q.GoldReward}g, {q.ExperienceReward} XP" + 
+                Console.WriteLine($"   Rewards: {q.GoldReward}g, {q.ExperienceReward} XP" +
                                 (q.EquipmentReward != null ? $", {q.EquipmentReward.Name}" : ""));
             }
 
@@ -314,7 +314,7 @@ namespace Rpg_Dungeon
             for (int i = 0; i < completedQuests.Count; i++)
             {
                 var q = completedQuests[i];
-                Console.WriteLine($"{i + 1}) {q.Name} - {q.GoldReward}g, {q.ExperienceReward} XP" + 
+                Console.WriteLine($"{i + 1}) {q.Name} - {q.GoldReward}g, {q.ExperienceReward} XP" +
                                 (q.EquipmentReward != null ? $", {q.EquipmentReward.Name}" : ""));
             }
 

@@ -141,7 +141,7 @@ namespace Rpg_Dungeon
             Console.Write("Choice: ");
 
             var choice = Console.ReadLine()?.Trim() ?? "";
-            
+
             switch (choice)
             {
                 case "1":

@@ -140,6 +140,7 @@ namespace Rpg_Dungeon
             }
 
             EncounterDescription = $"⚠️  BOSS ENCOUNTER: {boss.Name} appears with {minionCount} minion(s)!";
+            VisualEffects.ShowBossEncounterIntro(boss.Name);
             Console.WriteLine($"\n{EncounterDescription}");
         }
 
@@ -325,7 +326,7 @@ namespace Rpg_Dungeon
                     // Display available targets
                     Console.WriteLine($"\n=== {member.Name}'s Turn ===");
                     var aliveEnemies = Enemies.Where(e => mobHealthTracker[e] > 0).ToList();
-                    
+
                     if (aliveEnemies.Count == 0) break;
 
                     Console.WriteLine("Available targets:");
@@ -342,7 +343,7 @@ namespace Rpg_Dungeon
 
                     // Use existing combat system for single mob
                     bool mobDefeated = Combat.RunEncounter(new List<Character> { member }, targetMob);
-                    
+
                     // Update HP tracker (estimate based on defeat or assume some damage)
                     if (mobDefeated)
                     {
@@ -373,7 +374,7 @@ namespace Rpg_Dungeon
                     var target = aliveParty[_rng.Next(aliveParty.Count)];
                     Combat.Attack(enemy, target);
                     Console.WriteLine();
-                    
+
                     if (!target.IsAlive)
                     {
                         Console.WriteLine($"💀 {target.Name} has fallen!");

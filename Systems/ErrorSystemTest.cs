@@ -47,7 +47,7 @@ namespace Rpg_Dungeon
             {
                 var testEx = new Exception("TEST ERROR - This is a diagnostic test error");
                 var logPath = ErrorLogger.LogError(testEx, "Automated test error from ErrorSystemTest");
-                
+
                 if (!string.IsNullOrEmpty(logPath) && File.Exists(logPath))
                 {
                     Console.WriteLine($"✅ PASSED - Error logged to: {Path.GetFileName(logPath)}");
@@ -83,7 +83,7 @@ namespace Rpg_Dungeon
             try
             {
                 var reportPath = ErrorLogger.CreateErrorReport();
-                
+
                 if (!string.IsNullOrEmpty(reportPath) && File.Exists(reportPath))
                 {
                     var fileInfo = new FileInfo(reportPath);
@@ -107,7 +107,7 @@ namespace Rpg_Dungeon
             try
             {
                 var maskedEmail = EmailReporter.GetMaskedEmail();
-                
+
                 if (maskedEmail.Contains("*") && !maskedEmail.Contains("ventrue07"))
                 {
                     Console.WriteLine($"✅ PASSED - Email masked: {maskedEmail}");

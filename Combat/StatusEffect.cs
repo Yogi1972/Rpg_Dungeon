@@ -188,7 +188,7 @@ namespace Rpg_Dungeon
         public static bool HasEffect(Character target, StatusEffectType type)
         {
             string key = target.Name;
-            return _characterEffects.ContainsKey(key) && 
+            return _characterEffects.ContainsKey(key) &&
                    _characterEffects[key].Any(e => e.Type == type);
         }
 
@@ -200,28 +200,28 @@ namespace Rpg_Dungeon
         public static double GetDamageModifier(Character target)
         {
             double modifier = 1.0;
-            
+
             if (HasEffect(target, StatusEffectType.Weakened))
                 modifier *= 0.70; // -30% damage
-            
+
             return modifier;
         }
 
         public static double GetDamageTakenModifier(Character target)
         {
             double modifier = 1.0;
-            
+
             if (HasEffect(target, StatusEffectType.Vulnerable))
                 modifier *= 1.30; // +30% damage taken
-            
+
             return modifier;
         }
 
         public static List<StatusEffect> GetActiveEffects(Character target)
         {
             string key = target.Name;
-            return _characterEffects.ContainsKey(key) 
-                ? new List<StatusEffect>(_characterEffects[key]) 
+            return _characterEffects.ContainsKey(key)
+                ? new List<StatusEffect>(_characterEffects[key])
                 : new List<StatusEffect>();
         }
 

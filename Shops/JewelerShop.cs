@@ -178,7 +178,7 @@ namespace Rpg_Dungeon
         {
             Console.WriteLine("\n=== JEWELRY REPAIR SERVICE ===");
             Console.WriteLine("Select who needs jewelry repair:");
-            for (int i = 0; i < party.Count; i++) 
+            for (int i = 0; i < party.Count; i++)
             {
                 Console.WriteLine($"{i + 1}) {party[i].Name} - Gold: {party[i].Inventory.Gold}");
             }
@@ -223,16 +223,16 @@ namespace Rpg_Dungeon
                 if (slots[i] is Equipment eq && (eq.Type == EquipmentType.Necklace || eq.Type == EquipmentType.Ring))
                 {
                     string durStatus = eq.Durability <= eq.MaxDurability / 4 ? " [LOW!]" : "";
-                    Console.WriteLine($"{itemNum}) [Inventory Slot {i+1}]: {eq.Name} (Dur: {eq.Durability}/{eq.MaxDurability}){durStatus} - Repair: {eq.RepairCost()}g");
+                    Console.WriteLine($"{itemNum}) [Inventory Slot {i + 1}]: {eq.Name} (Dur: {eq.Durability}/{eq.MaxDurability}){durStatus} - Repair: {eq.RepairCost()}g");
                     repairableItems.Add(($"Slot{i}", eq));
                     itemNum++;
                 }
             }
 
-            if (repairableItems.Count == 0) 
-            { 
-                Console.WriteLine("No jewelry to repair."); 
-                return; 
+            if (repairableItems.Count == 0)
+            {
+                Console.WriteLine("No jewelry to repair.");
+                return;
             }
 
             Console.WriteLine("\nOptions:");
@@ -244,25 +244,25 @@ namespace Rpg_Dungeon
             if (sel.Trim().Equals("R", StringComparison.OrdinalIgnoreCase))
             {
                 int totalCost = repairableItems.Sum(item => item.eq.RepairCost());
-                if (totalCost <= 0) 
-                { 
-                    Console.WriteLine("All jewelry is already at full durability!"); 
-                    return; 
+                if (totalCost <= 0)
+                {
+                    Console.WriteLine("All jewelry is already at full durability!");
+                    return;
                 }
 
                 Console.WriteLine($"\nTotal repair cost for all jewelry: {totalCost} gold");
                 Console.Write("Proceed with repair all? (y/n): ");
                 var confirm = Console.ReadLine() ?? string.Empty;
-                if (!confirm.Trim().Equals("y", StringComparison.OrdinalIgnoreCase)) 
+                if (!confirm.Trim().Equals("y", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("Repair cancelled.");
                     return;
                 }
 
-                if (!c.Inventory.SpendGold(totalCost)) 
-                { 
-                    Console.WriteLine($"Not enough gold. You have {c.Inventory.Gold}g but need {totalCost}g."); 
-                    return; 
+                if (!c.Inventory.SpendGold(totalCost))
+                {
+                    Console.WriteLine($"Not enough gold. You have {c.Inventory.Gold}g but need {totalCost}g.");
+                    return;
                 }
 
                 foreach (var item in repairableItems)
@@ -281,10 +281,10 @@ namespace Rpg_Dungeon
                 var chosen = repairableItems[selIdx - 1];
                 int cost = chosen.eq.RepairCost();
                 if (cost <= 0) { Console.WriteLine("Item is already at full durability!"); return; }
-                if (!c.Inventory.SpendGold(cost)) 
-                { 
-                    Console.WriteLine($"Not enough gold. Repair costs {cost}g but you have {c.Inventory.Gold}g."); 
-                    return; 
+                if (!c.Inventory.SpendGold(cost))
+                {
+                    Console.WriteLine($"Not enough gold. Repair costs {cost}g but you have {c.Inventory.Gold}g.");
+                    return;
                 }
                 chosen.eq.Repair();
                 Console.WriteLine($"💎 {chosen.eq.Name} repaired to full durability! Gold remaining: {c.Inventory.Gold}");

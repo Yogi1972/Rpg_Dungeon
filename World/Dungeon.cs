@@ -249,7 +249,7 @@ namespace Rpg_Dungeon
                 }
 
                 // Check for dungeon completion
-                if (_currentFloorIndex >= _totalFloors - 1 && 
+                if (_currentFloorIndex >= _totalFloors - 1 &&
                     _floors[_currentFloorIndex].BossRoom?.Cleared == true)
                 {
                     Console.WriteLine("\n╔═══════════════════════════════════════╗");
@@ -315,12 +315,12 @@ namespace Rpg_Dungeon
                 if (exitCount > 2)
                     return "🔀 Corridor Junction";
 
-                var hallwayTypes = new[] 
-                { 
-                    "🚶 Narrow Corridor", 
-                    "🕯️ Torch-lit Passage", 
+                var hallwayTypes = new[]
+                {
+                    "🚶 Narrow Corridor",
+                    "🕯️ Torch-lit Passage",
                     "🌫️ Misty Hallway",
-                    "🪨 Stone Corridor" 
+                    "🪨 Stone Corridor"
                 };
                 return hallwayTypes[_rng.Next(hallwayTypes.Length)];
             }

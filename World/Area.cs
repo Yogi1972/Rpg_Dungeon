@@ -57,7 +57,7 @@ namespace Rpg_Dungeon
             Console.WriteLine($"╚════════════════════════════════════════╝");
             Console.WriteLine($"📍 {Description}");
             Console.WriteLine($"⚔️  Recommended Level: {RecommendedLevel}");
-            
+
             if (Weather != null)
             {
                 Console.WriteLine($"🌤️  Weather: {Weather.GetWeatherDescription()}");
@@ -83,7 +83,7 @@ namespace Rpg_Dungeon
             }
         }
 
-        public void ExploreArea(List<Character> party, QuestBoard questBoard, BountyBoard bountyBoard, 
+        public void ExploreArea(List<Character> party, QuestBoard questBoard, BountyBoard bountyBoard,
                               AchievementTracker achievementTracker, Journal journal)
         {
             if (!IsUnlocked)
@@ -129,7 +129,7 @@ namespace Rpg_Dungeon
             }
         }
 
-        private void SelectAndExploreDungeon(List<Character> party, QuestBoard questBoard, 
+        private void SelectAndExploreDungeon(List<Character> party, QuestBoard questBoard,
                                             BountyBoard bountyBoard, AchievementTracker achievementTracker, Journal journal)
         {
             if (Dungeons.Count == 0)

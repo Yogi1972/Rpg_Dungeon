@@ -570,7 +570,7 @@ namespace Rpg_Dungeon
                             {
                                 if (it == null) continue;
                                 Item item;
-                                if (it.Type == "Backpack") 
+                                if (it.Type == "Backpack")
                                     item = new Backpack(it.Name, it.Slots, it.Price);
                                 else if (it.Type == "Torch")
                                 {
@@ -581,15 +581,15 @@ namespace Rpg_Dungeon
                                         torch.Light();
                                     item = torch;
                                 }
-                                else if (it.Type == "Equipment") 
-                                { 
+                                else if (it.Type == "Equipment")
+                                {
                                     var eqType = Enum.TryParse<EquipmentType>(it.EquipmentType, out var type) ? type : EquipmentType.Weapon;
-                                    var eq = new Equipment(it.Name, eqType, it.MaxDurability, it.Price); 
-                                    if (it.Durability < eq.MaxDurability) 
-                                        eq.Damage(eq.MaxDurability - it.Durability); 
-                                    item = eq; 
+                                    var eq = new Equipment(it.Name, eqType, it.MaxDurability, it.Price);
+                                    if (it.Durability < eq.MaxDurability)
+                                        eq.Damage(eq.MaxDurability - it.Durability);
+                                    item = eq;
                                 }
-                                else 
+                                else
                                     item = new GenericItem(it.Name, it.Price);
                                 ch.Inventory.AddItem(item);
                             }
