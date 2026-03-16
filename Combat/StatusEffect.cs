@@ -17,7 +17,8 @@ namespace Rpg_Dungeon
         Frozen,      // Reduced action options
         Weakened,    // Reduced damage output
         Vulnerable,  // Increased damage taken
-        Regenerating // Healing over time
+        Regenerating, // Healing over time
+        Strengthened // Increased damage output
     }
 
     /// <summary>
@@ -50,6 +51,7 @@ namespace Rpg_Dungeon
                 StatusEffectType.Weakened => "⬇️",
                 StatusEffectType.Vulnerable => "🎯",
                 StatusEffectType.Regenerating => "💚",
+                StatusEffectType.Strengthened => "⬆️",
                 _ => "?"
             };
         }
@@ -66,6 +68,7 @@ namespace Rpg_Dungeon
                 StatusEffectType.Weakened => ConsoleColor.DarkGray,
                 StatusEffectType.Vulnerable => ConsoleColor.Magenta,
                 StatusEffectType.Regenerating => ConsoleColor.Green,
+                StatusEffectType.Strengthened => ConsoleColor.Yellow,
                 _ => ConsoleColor.White
             };
         }
@@ -111,6 +114,10 @@ namespace Rpg_Dungeon
 
                 case StatusEffectType.Vulnerable:
                     Console.Write($" {target.Name} is vulnerable! (+30% damage taken)");
+                    break;
+
+                case StatusEffectType.Strengthened:
+                    Console.Write($" {target.Name} is empowered! (+30% damage)");
                     break;
             }
 

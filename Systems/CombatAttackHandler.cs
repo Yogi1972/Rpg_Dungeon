@@ -21,7 +21,7 @@ namespace Rpg_Dungeon
             if (attacker == null || target == null) return;
             if (!attacker.IsAlive) return;
 
-            int roll = Combat.RollD20();
+            int roll = CombatSystem.RollD20();
             int attackStat = GetAttackStat(attacker);
             int targetDefense = 10 + (target.Agility / 2);
 
@@ -64,7 +64,7 @@ namespace Rpg_Dungeon
             if (attacker == null || target == null) return;
             if (!target.IsAlive) return;
 
-            int roll = Combat.RollD20();
+            int roll = CombatSystem.RollD20();
             int attackStat = attacker.Strength;
 
             // Apply AI speed bonus to effective agility for hit calculation
@@ -160,7 +160,7 @@ namespace Rpg_Dungeon
         /// </summary>
         public static void PerformBasicAttack(Character member, Mob mob, ref int mobHp)
         {
-            int roll = Combat.RollD20();
+            int roll = CombatSystem.RollD20();
             int attackStat = GetAttackStat(member);
             int targetDefense = 10 + (mob.Agility / 2);
 
