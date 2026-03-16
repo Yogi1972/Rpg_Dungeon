@@ -16,7 +16,7 @@ namespace Rpg_Dungeon.Systems
         /// <summary>
         /// Current minor version number (new features)
         /// </summary>
-        public const int MinorVersion = 1;
+        public const int MinorVersion = 2;
 
         /// <summary>
         /// Current patch version number (bug fixes)

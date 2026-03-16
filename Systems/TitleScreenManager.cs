@@ -74,12 +74,13 @@ namespace Rpg_Dungeon
                 Console.WriteLine();
                 Console.WriteLine("  1) ⚔️  Start New Game");
                 Console.WriteLine("  2) 💾 Load Saved Game (Max 10 saves)");
-                Console.WriteLine("  3) 👥 Start Multiplayer Game");
-                Console.WriteLine("  4) 📂 Load Multiplayer Save (Max 10 saves)");
-                Console.WriteLine("  5) 📖 How to Play");
-                Console.WriteLine("  6) ℹ️  About");
-                Console.WriteLine("  7) 📋 Error Logs & Diagnostics");
-                Console.WriteLine("  8) 🔄 Check for Updates");
+                Console.WriteLine("  3) 👥 Local Multiplayer (Hotseat)");
+                Console.WriteLine("  4) 🌐 Network Multiplayer (LAN)");
+                Console.WriteLine("  5) 📂 Load Multiplayer Save (Max 10 saves)");
+                Console.WriteLine("  6) 📖 How to Play");
+                Console.WriteLine("  7) ℹ️  About");
+                Console.WriteLine("  8) 📋 Error Logs & Diagnostics");
+                Console.WriteLine("  9) 🔄 Check for Updates");
                 Console.WriteLine("  0) 🚪 Exit Game");
                 Console.WriteLine();
                 Console.Write("Choose an option: ");
@@ -101,22 +102,26 @@ namespace Rpg_Dungeon
                         return;
 
                     case "4":
-                        HandleLoadMultiplayerGame();
+                        ShowNetworkMultiplayerMenu();
                         break;
 
                     case "5":
-                        ShowHowToPlay();
+                        HandleLoadMultiplayerGame();
                         break;
 
                     case "6":
-                        ShowAbout();
+                        ShowHowToPlay();
                         break;
 
                     case "7":
-                        ShowErrorLogsMenu();
+                        ShowAbout();
                         break;
 
                     case "8":
+                        ShowErrorLogsMenu();
+                        break;
+
+                    case "9":
                         UpdateChecker.ShowUpdateCheckScreen();
                         break;
 
@@ -134,7 +139,7 @@ namespace Rpg_Dungeon
                 }
 
                 if (choice.Trim() != "0" && choice.Trim() != "1" && choice.Trim() != "2" &&
-                    choice.Trim() != "3" && choice.Trim() != "4")
+                    choice.Trim() != "3" && choice.Trim() != "4" && choice.Trim() != "5")
                 {
                     Console.WriteLine();
                 }
@@ -559,6 +564,119 @@ namespace Rpg_Dungeon
                         break;
                 }
             }
+        }
+
+        private static void ShowNetworkMultiplayerMenu()
+        {
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
+                Console.WriteLine("║                   NETWORK MULTIPLAYER (LAN)                      ║");
+                Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
+                Console.WriteLine();
+                Console.WriteLine("  🌐 Connect with friends over your local network!");
+                Console.WriteLine("  📡 One player hosts, others join using IP address");
+                Console.WriteLine();
+                Console.WriteLine("  1) 🏠 Host a Game (Create Server)");
+                Console.WriteLine("  2) 🔌 Join a Game (Connect to Server)");
+                Console.WriteLine("  3) 📋 Show My IP Address");
+                Console.WriteLine("  4) ❓ Network Multiplayer Help");
+                Console.WriteLine("  0) ⬅️  Return to Main Menu");
+                Console.WriteLine();
+                Console.Write("Choose an option: ");
+
+                var choice = Console.ReadLine() ?? string.Empty;
+
+                switch (choice.Trim())
+                {
+                    case "1":
+                        NetworkMultiplayerManager.HostGame();
+                        return;
+
+                    case "2":
+                        NetworkMultiplayerManager.JoinGame();
+                        return;
+
+                    case "3":
+                        ShowIPAddress();
+                        break;
+
+                    case "4":
+                        ShowNetworkHelp();
+                        break;
+
+                    case "0":
+                        return;
+
+                    default:
+                        Console.WriteLine("\n❌ Invalid selection. Please choose a valid option.");
+                        Thread.Sleep(1000);
+                        break;
+                }
+            }
+        }
+
+        private static void ShowIPAddress()
+        {
+            Console.Clear();
+            Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
+            Console.WriteLine("║                      YOUR IP ADDRESS                             ║");
+            Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
+            Console.WriteLine();
+
+            string ipAddress = Rpg_Dungeon.Systems.NetworkManager.GetLocalIPAddress();
+
+            Console.WriteLine($"  📡 Your Local IP Address: {ipAddress}");
+            Console.WriteLine();
+            Console.WriteLine("  💡 Share this IP with friends so they can join your game!");
+            Console.WriteLine();
+            Console.WriteLine("  ⚠️  NOTE: This only works on the same local network (LAN)");
+            Console.WriteLine("     - Same Wi-Fi network");
+            Console.WriteLine("     - Same wired network");
+            Console.WriteLine("     - Connected via router");
+            Console.WriteLine();
+            Console.WriteLine("Press Enter to return...");
+            Console.ReadLine();
+        }
+
+        private static void ShowNetworkHelp()
+        {
+            Console.Clear();
+            Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
+            Console.WriteLine("║               NETWORK MULTIPLAYER HELP                           ║");
+            Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
+            Console.WriteLine();
+            Console.WriteLine("  🎮 HOW TO PLAY NETWORK MULTIPLAYER:");
+            Console.WriteLine();
+            Console.WriteLine("  1️⃣  HOST SETUP:");
+            Console.WriteLine("     • Choose 'Host a Game' from the menu");
+            Console.WriteLine("     • Create your character");
+            Console.WriteLine("     • Share your IP address with friends (displayed on screen)");
+            Console.WriteLine("     • Wait for players to join");
+            Console.WriteLine("     • Type 'start' when ready to begin");
+            Console.WriteLine();
+            Console.WriteLine("  2️⃣  JOIN SETUP:");
+            Console.WriteLine("     • Choose 'Join a Game' from the menu");
+            Console.WriteLine("     • Enter the host's IP address");
+            Console.WriteLine("     • Create your character");
+            Console.WriteLine("     • Wait for host to start the game");
+            Console.WriteLine();
+            Console.WriteLine("  ⚠️  REQUIREMENTS:");
+            Console.WriteLine("     ✓ All players must be on the same local network (LAN)");
+            Console.WriteLine("     ✓ Firewall may need to allow the game (Port 7777)");
+            Console.WriteLine("     ✓ Host must know their IP address");
+            Console.WriteLine();
+            Console.WriteLine("  🔧 TROUBLESHOOTING:");
+            Console.WriteLine("     • Can't connect? Check firewall settings");
+            Console.WriteLine("     • Wrong IP? Use 'Show My IP Address' option");
+            Console.WriteLine("     • Still issues? Try using IP address like 192.168.x.x");
+            Console.WriteLine();
+            Console.WriteLine("  📝 DEFAULT PORT: 7777");
+            Console.WriteLine("     (You can change this when hosting)");
+            Console.WriteLine();
+            Console.WriteLine("Press Enter to return...");
+            Console.ReadLine();
         }
     }
 }
