@@ -16,7 +16,7 @@ namespace Rpg_Dungeon.Systems
         /// <summary>
         /// Current minor version number (new features)
         /// </summary>
-        public const int MinorVersion = 2;
+        public const int MinorVersion = 3;
 
         /// <summary>
         /// Current patch version number (bug fixes)
@@ -27,7 +27,7 @@ namespace Rpg_Dungeon.Systems
         /// Optional pre-release tag (e.g., "alpha", "beta", "rc1")
         /// Set to null or empty for stable releases
         /// </summary>
-        public const string PreReleaseTag = "beta";
+        public const string PreReleaseTag = "";
 
         /// <summary>
         /// GitHub repository URL for the release version

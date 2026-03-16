@@ -3,9 +3,9 @@ Write-Host 'Testing Auto-Update Detection...' -ForegroundColor Cyan
 Write-Host ''
 
 $currentMajor = 3
-$currentMinor = 2
+$currentMinor = 3
 $currentPatch = 0
-$currentVersion = "$currentMajor.$currentMinor.$currentPatch-beta"
+$currentVersion = "$currentMajor.$currentMinor.$currentPatch"
 
 Write-Host "Current Version: $currentVersion" -ForegroundColor Yellow
 Write-Host ''
