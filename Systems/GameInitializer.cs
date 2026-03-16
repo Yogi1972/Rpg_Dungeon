@@ -167,6 +167,17 @@ namespace Rpg_Dungeon
             StartingEquipmentGenerator.GiveStartingEquipment(character);
             Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
+            // Initialize combat abilities
+            character.InitializeAbilities();
+            if (character.Abilities.Count > 0)
+            {
+                Console.WriteLine($"\n⚔️  Learned {character.Abilities.Count} combat abilities!");
+                foreach (var ability in character.Abilities)
+                {
+                    Console.WriteLine($"  {ability.Icon} {ability.Name}");
+                }
+            }
+
             return character;
         }
 

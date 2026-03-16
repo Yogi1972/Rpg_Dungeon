@@ -83,7 +83,7 @@ namespace Rpg_Dungeon
 
                 if (updateInfo == null)
                 {
-                    Console.WriteLine("⚠️  Unable to check for updates (network issue)");
+                    Console.WriteLine("⚠️  Unable to check for updates (no releases published yet or network issue)");
                 }
                 else if (UpdateChecker.IsNewerVersion(updateInfo))
                 {

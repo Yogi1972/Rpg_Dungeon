@@ -68,7 +68,15 @@ namespace Rpg_Dungeon.Systems
             }
             catch (HttpRequestException ex)
             {
-                ErrorLogger.LogWarning($"Failed to check for updates: {ex.Message}", "Network error or GitHub unavailable");
+                // Check if it's a 404 - no releases published yet
+                if (ex.Message.Contains("404"))
+                {
+                    ErrorLogger.LogWarning("No GitHub releases published yet", "Update check skipped - no releases available");
+                }
+                else
+                {
+                    ErrorLogger.LogWarning($"Failed to check for updates: {ex.Message}", "Network error or GitHub unavailable");
+                }
                 return null;
             }
             catch (TaskCanceledException)
