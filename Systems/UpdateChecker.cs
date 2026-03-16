@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -39,6 +41,17 @@ namespace Rpg_Dungeon.Systems
             public string? body { get; set; }
             public string? published_at { get; set; }
             public bool prerelease { get; set; }
+            public GitHubAsset[]? assets { get; set; }
+        }
+
+        /// <summary>
+        /// GitHub API asset response model
+        /// </summary>
+        private class GitHubAsset
+        {
+            public string? name { get; set; }
+            public string? browser_download_url { get; set; }
+            public long size { get; set; }
         }
 
         /// <summary>
@@ -213,10 +226,14 @@ namespace Rpg_Dungeon.Systems
                         Console.WriteLine();
                     }
 
-                    Console.WriteLine("  💡 Press 'D' to download now, or Enter to continue...");
+                    Console.WriteLine("  💡 Press 'A' to auto-update, 'D' to download manually, or Enter to continue...");
                     var key = Console.ReadKey(true);
 
-                    if (key.KeyChar == 'D' || key.KeyChar == 'd')
+                    if (key.KeyChar == 'A' || key.KeyChar == 'a')
+                    {
+                        DownloadAndInstallUpdate(remoteVersion);
+                    }
+                    else if (key.KeyChar == 'D' || key.KeyChar == 'd')
                     {
                         OpenGitHubReleases();
                     }
@@ -284,6 +301,259 @@ namespace Rpg_Dungeon.Systems
                 ErrorLogger.LogWarning($"Failed to open GitHub URL: {ex.Message}", "Browser launch failed");
                 System.Threading.Thread.Sleep(2000);
             }
+        }
+
+        /// <summary>
+        /// Download and install update automatically
+        /// </summary>
+        private static void DownloadAndInstallUpdate(VersionInfo remoteVersion)
+        {
+            try
+            {
+                Console.WriteLine();
+                Console.WriteLine("  🔄 Starting auto-update...");
+                Console.WriteLine();
+
+                // Get download URL
+                Console.WriteLine("  📡 Fetching download information...");
+                var downloadUrl = GetDownloadUrl(remoteVersion).Result;
+
+                if (string.IsNullOrWhiteSpace(downloadUrl))
+                {
+                    Console.WriteLine("  ❌ Could not find download file.");
+                    Console.WriteLine("  💡 Falling back to manual download...");
+                    System.Threading.Thread.Sleep(2000);
+                    OpenGitHubReleases();
+                    return;
+                }
+
+                Console.WriteLine($"  ✅ Found: {Path.GetFileName(downloadUrl)}");
+                Console.WriteLine();
+
+                // Download update
+                string tempZipPath = Path.Combine(Path.GetTempPath(), "rpg_update.zip");
+                string tempExtractPath = Path.Combine(Path.GetTempPath(), "rpg_update");
+
+                Console.WriteLine("  ⬇️  Downloading update...");
+                DownloadFileAsync(downloadUrl, tempZipPath).Wait();
+                Console.WriteLine("  ✅ Download complete!");
+                Console.WriteLine();
+
+                // Extract files
+                Console.WriteLine("  📦 Extracting files...");
+                if (Directory.Exists(tempExtractPath))
+                {
+                    Directory.Delete(tempExtractPath, true);
+                }
+                ZipFile.ExtractToDirectory(tempZipPath, tempExtractPath);
+                Console.WriteLine("  ✅ Extraction complete!");
+                Console.WriteLine();
+
+                // Create updater script
+                string updaterScript = CreateUpdaterScript(tempExtractPath);
+                Console.WriteLine("  🔧 Preparing installation...");
+                Console.WriteLine();
+
+                // Launch updater and exit
+                Console.WriteLine("  🚀 Launching installer...");
+                Console.WriteLine("  ⏳ The game will restart automatically.");
+                Console.WriteLine();
+                Console.WriteLine("  Please wait...");
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-ExecutionPolicy Bypass -WindowStyle Hidden -File \"{updaterScript}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
+
+                System.Threading.Thread.Sleep(2000);
+                Environment.Exit(0);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine();
+                Console.WriteLine($"  ❌ Auto-update failed: {ex.Message}");
+                Console.WriteLine("  💡 Please download manually from GitHub.");
+                ErrorLogger.LogWarning($"Auto-update failed: {ex.Message}", "DownloadAndInstallUpdate error");
+                System.Threading.Thread.Sleep(3000);
+                OpenGitHubReleases();
+            }
+        }
+
+        /// <summary>
+        /// Get the download URL for the latest release
+        /// </summary>
+        private static async Task<string?> GetDownloadUrl(VersionInfo remoteVersion)
+        {
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("User-Agent", "Rpg-Dungeon-Crawler/3.0");
+                _httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+                _httpClient.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+
+                var response = await _httpClient.GetStringAsync(VersionControl.GitHubVersionCheckUrl);
+                var githubRelease = JsonSerializer.Deserialize<GitHubRelease>(response, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (githubRelease?.assets == null || githubRelease.assets.Length == 0)
+                {
+                    return null;
+                }
+
+                // Find the zip file
+                foreach (var asset in githubRelease.assets)
+                {
+                    if (asset.name?.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        return asset.browser_download_url;
+                    }
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Download a file with progress
+        /// </summary>
+        private static async Task DownloadFileAsync(string url, string destinationPath)
+        {
+            using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+
+            var totalBytes = response.Content.Headers.ContentLength ?? 0;
+            using var contentStream = await response.Content.ReadAsStreamAsync();
+            using var fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+
+            var buffer = new byte[8192];
+            long totalRead = 0;
+            int bytesRead;
+            int lastProgress = -1;
+
+            while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                await fileStream.WriteAsync(buffer, 0, bytesRead);
+                totalRead += bytesRead;
+
+                if (totalBytes > 0)
+                {
+                    int progress = (int)((totalRead * 100) / totalBytes);
+                    if (progress != lastProgress && progress % 10 == 0)
+                    {
+                        Console.Write($"\r  📊 Progress: {progress}%  ");
+                        lastProgress = progress;
+                    }
+                }
+            }
+            Console.WriteLine();
+        }
+
+        /// <summary>
+        /// Create a PowerShell script to update files and restart the game
+        /// </summary>
+        private static string CreateUpdaterScript(string extractPath)
+        {
+            string currentDir = AppDomain.CurrentDomain.BaseDirectory;
+            string currentExe = Process.GetCurrentProcess().MainModule?.FileName ?? "Night.exe";
+            string scriptPath = Path.Combine(Path.GetTempPath(), "rpg_updater.ps1");
+
+            // Build script line by line to avoid string literal issues
+            var scriptLines = new System.Collections.Generic.List<string>
+            {
+                "Write-Host 'RPG Dungeon Auto-Updater' -ForegroundColor Cyan",
+                "Write-Host '=========================' -ForegroundColor Cyan",
+                "Write-Host ''",
+                "",
+                "# Wait for game to close",
+                "Write-Host 'Waiting for game to close...' -ForegroundColor Yellow",
+                "Start-Sleep -Seconds 2",
+                "",
+                "# Get all processes named Night",
+                "$processes = Get-Process -Name 'Night' -ErrorAction SilentlyContinue",
+                "if ($processes) {",
+                "    Write-Host 'Closing game process...' -ForegroundColor Yellow",
+                "    $processes | Stop-Process -Force",
+                "    Start-Sleep -Seconds 1",
+                "}",
+                "",
+                "Write-Host 'Installing update...' -ForegroundColor Yellow",
+                "Write-Host ''",
+                "",
+                "# Copy new files",
+                $"$sourceDir = '{extractPath}'",
+                $"$targetDir = '{currentDir}'",
+                "",
+                "try {",
+                "    # Backup old exe",
+                "    $oldExe = Join-Path $targetDir 'Night.exe'",
+                "    $backupExe = Join-Path $targetDir 'Night.exe.backup'",
+                "    if (Test-Path $oldExe) {",
+                "        Copy-Item $oldExe $backupExe -Force",
+                "    }",
+                "",
+                "    # Copy all files",
+                "    Get-ChildItem -Path $sourceDir -Recurse | ForEach-Object {",
+                "        $targetPath = $_.FullName.Replace($sourceDir, $targetDir)",
+                "        if ($_.PSIsContainer) {",
+                "            if (-not (Test-Path $targetPath)) {",
+                "                New-Item -ItemType Directory -Path $targetPath -Force | Out-Null",
+                "            }",
+                "        } else {",
+                "            Copy-Item $_.FullName $targetPath -Force",
+                "            Write-Host \"  + $($_.Name)\" -ForegroundColor Green",
+                "        }",
+                "    }",
+                "",
+                "    Write-Host ''",
+                "    Write-Host '[OK] Update installed successfully!' -ForegroundColor Green",
+                "    Write-Host ''",
+                "    Write-Host 'Restarting game...' -ForegroundColor Cyan",
+                "    Start-Sleep -Seconds 2",
+                "",
+                "    # Restart game",
+                $"    Start-Process -FilePath '{currentExe}' -WorkingDirectory $targetDir",
+                "",
+                "    # Cleanup",
+                "    Start-Sleep -Seconds 2",
+                "    Remove-Item -Path $sourceDir -Recurse -Force -ErrorAction SilentlyContinue",
+                $"    Remove-Item -Path '{Path.Combine(Path.GetTempPath(), "rpg_update.zip")}' -Force -ErrorAction SilentlyContinue",
+                "    Remove-Item -Path $backupExe -Force -ErrorAction SilentlyContinue",
+                "    Remove-Item -Path $MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyContinue",
+                "}",
+                "catch {",
+                "    Write-Host ''",
+                "    Write-Host '[ERROR] Update failed!' -ForegroundColor Red",
+                "    Write-Host \"Error: $($_.Exception.Message)\" -ForegroundColor Red",
+                "    Write-Host ''",
+                "    Write-Host 'Restoring backup...' -ForegroundColor Yellow",
+                "",
+                "    # Restore backup",
+                "    $oldExe = Join-Path $targetDir 'Night.exe'",
+                "    $backupExe = Join-Path $targetDir 'Night.exe.backup'",
+                "    if (Test-Path $backupExe) {",
+                "        Copy-Item $backupExe $oldExe -Force",
+                "        Remove-Item $backupExe -Force",
+                "    }",
+                "",
+                "    Write-Host 'Restarting game...' -ForegroundColor Cyan",
+                $"    Start-Process -FilePath '{currentExe}' -WorkingDirectory $targetDir",
+                "",
+                "    Start-Sleep -Seconds 5",
+                "}"
+            };
+
+            string script = string.Join(Environment.NewLine, scriptLines);
+            File.WriteAllText(scriptPath, script);
+            return scriptPath;
         }
 
         /// <summary>
